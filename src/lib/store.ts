@@ -5,6 +5,7 @@ import { DEFAULT_PREFERENCES } from "@/types";
 const profileStore = new LazyStore("profile.json");
 const preferencesStore = new LazyStore("preferences.json");
 const fortuneStore = new LazyStore("fortunes.json");
+const tarotStore = new LazyStore("tarot.json");
 
 export async function saveProfile(profile: UserProfile): Promise<void> {
   await profileStore.set("profile", profile);
@@ -38,6 +39,24 @@ export async function loadDailyFortune(
   return fortune ?? null;
 }
 
+export type DailyTarot = {
+  cardId: number;
+  headline: string;
+  interpretation: string;
+  advice: string;
+  drawCount: number;
+};
+
+export async function saveDailyTarot(date: string, data: DailyTarot): Promise<void> {
+  await tarotStore.set(date, data);
+  await tarotStore.save();
+}
+
+export async function loadDailyTarot(date: string): Promise<DailyTarot | null> {
+  const data = await tarotStore.get<DailyTarot>(date);
+  return data ?? null;
+}
+
 export async function clearAllData(): Promise<void> {
   await profileStore.clear();
   await profileStore.save();
@@ -45,4 +64,6 @@ export async function clearAllData(): Promise<void> {
   await preferencesStore.save();
   await fortuneStore.clear();
   await fortuneStore.save();
+  await tarotStore.clear();
+  await tarotStore.save();
 }
