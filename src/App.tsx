@@ -6,6 +6,7 @@ import { FortuneCard } from "@/pages/FortuneCard";
 import { TarotPage } from "@/pages/TarotPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { Loader2 } from "lucide-react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export default function App() {
   const { currentView, isLoading, initialized, initialize, preferences } =
@@ -14,6 +15,12 @@ export default function App() {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    if (initialized && currentView === "onboarding") {
+      getCurrentWindow().show();
+    }
+  }, [initialized, currentView]);
 
   useEffect(() => {
     const root = document.documentElement;

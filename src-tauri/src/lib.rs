@@ -1,11 +1,13 @@
 use std::process::Command;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconEvent},
     Manager,
 };
 
 static DETACHED: AtomicBool = AtomicBool::new(false);
+static TRAY_X: AtomicI32 = AtomicI32::new(0);
+static TRAY_Y: AtomicI32 = AtomicI32::new(0);
 
 #[tauri::command]
 async fn call_claude(prompt: String) -> Result<String, String> {
@@ -32,6 +34,15 @@ async fn call_claude(prompt: String) -> Result<String, String> {
 async fn set_detached(window: tauri::WebviewWindow, detached: bool) -> Result<(), String> {
     DETACHED.store(detached, Ordering::SeqCst);
     let _ = window.set_always_on_top(!detached);
+    let _ = window.set_decorations(detached);
+    let _ = window.set_resizable(!detached);
+    if !detached {
+        let tx = TRAY_X.load(Ordering::SeqCst);
+        let ty = TRAY_Y.load(Ordering::SeqCst);
+        if tx != 0 || ty != 0 {
+            let _ = window.set_position(tauri::PhysicalPosition::new(tx, ty));
+        }
+    }
     Ok(())
 }
 
@@ -74,10 +85,11 @@ pub fn run() {
                             tauri::Size::Physical(s) => s.height as i32,
                             tauri::Size::Logical(l) => l.height as i32,
                         };
-                        let _ = window.set_position(tauri::PhysicalPosition::new(
-                            x - 170,
-                            y + h,
-                        ));
+                        let wx = x - 170;
+                        let wy = y + h;
+                        TRAY_X.store(wx, Ordering::SeqCst);
+                        TRAY_Y.store(wy, Ordering::SeqCst);
+                        let _ = window.set_position(tauri::PhysicalPosition::new(wx, wy));
                         let _ = window.show();
                         let _ = window.set_focus();
                     }
