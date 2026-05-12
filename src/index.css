@@ -22,8 +22,8 @@
     --input: 213 20% 18%;
     --ring: 38 36% 50%;
     --radius: 0.75rem;
-    --gold: #B8965A;
-    --gold-light: #C8A96B;
+    --gold: 38 40% 54%;
+    --gold-light: 40 46% 60%;
   }
 
   .dark {
@@ -44,8 +44,8 @@
     --border: 213 20% 18%;
     --input: 213 20% 18%;
     --ring: 38 36% 50%;
-    --gold: #B8965A;
-    --gold-light: #C8A96B;
+    --gold: 38 40% 54%;
+    --gold-light: 40 46% 60%;
   }
 }
 
@@ -80,22 +80,13 @@
     background: linear-gradient(135deg, hsl(213 30% 14%), hsl(213 28% 18%));
   }
   .gradient-gold {
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)));
   }
   .gradient-text {
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-  }
-  .text-gold {
-    color: var(--gold);
-  }
-  .text-gold-light {
-    color: var(--gold-light);
-  }
-  .border-gold {
-    border-color: var(--gold);
   }
   .shimmer {
     background: linear-gradient(

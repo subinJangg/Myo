@@ -11,8 +11,8 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         gold: {
-          DEFAULT: "var(--gold)",
-          light: "var(--gold-light)",
+          DEFAULT: "hsl(var(--gold) / <alpha-value>)",
+          light: "hsl(var(--gold-light) / <alpha-value>)",
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",
