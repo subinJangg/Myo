@@ -10,14 +10,14 @@ import { getZodiacSign } from "@/lib/zodiac";
 import { getBirthDayMaster } from "@/lib/saju";
 import { BIRTH_LOCATIONS } from "@/types";
 import type { JobRole, Tone, UserProfile } from "@/types";
-import { Sparkles, Briefcase, Code2, Palette, BarChart3, MessageCircle, Flame, Zap, Leaf, Heart } from "lucide-react";
+import { Sparkles, Briefcase, Code2, Palette, BarChart3, Flame, Zap, Leaf, Heart } from "lucide-react";
 
 const schema = z.object({
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD 형식으로 입력"),
   birthTime: z.string().regex(/^\d{2}:\d{2}$/, "HH:MM 형식으로 입력"),
   birthLocationName: z.string(),
   jobRole: z.enum(["general", "developer", "designer", "pm"]),
-  tone: z.enum(["default", "warm", "savage", "hype", "calm"]),
+  tone: z.enum(["warm", "savage", "hype", "calm"]),
   notificationTime: z.string().regex(/^\d{2}:\d{2}$/),
 });
 
@@ -31,7 +31,6 @@ const jobRoleOptions = [
 ];
 
 const toneOptions = [
-  { value: "default" as const, label: "기본", desc: "친절하고 자연스러운 톤", icon: MessageCircle },
   { value: "warm" as const, label: "따뜻한", desc: "힘이 되는 응원 말투", icon: Heart },
   { value: "savage" as const, label: "독설", desc: "팩트로 때리는 애정 어린 독설", icon: Flame },
   { value: "hype" as const, label: "하이텐션", desc: "에너지 넘치는 과장 말투!!", icon: Zap },
@@ -93,14 +92,14 @@ export function OnboardingPage() {
       {/* Header with gradient */}
       <div className="gradient-primary px-5 pt-6 pb-8 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="absolute top-2 left-8 text-white/30 text-2xl animate-float">✦</div>
-          <div className="absolute top-4 right-10 text-white/20 text-lg animate-float" style={{ animationDelay: "0.5s" }}>✧</div>
-          <div className="absolute bottom-3 left-1/3 text-white/25 text-xl animate-float" style={{ animationDelay: "1s" }}>✦</div>
+          <div className="absolute top-2 left-8 text-gold/30 text-2xl animate-float">✦</div>
+          <div className="absolute top-4 right-10 text-gold/20 text-lg animate-float" style={{ animationDelay: "0.5s" }}>✧</div>
+          <div className="absolute bottom-3 left-1/3 text-gold/25 text-xl animate-float" style={{ animationDelay: "1s" }}>✦</div>
         </div>
         <div className="relative">
-          <Sparkles className="w-8 h-8 text-white/90 mx-auto mb-2" />
-          <h1 className="text-xl font-bold text-white tracking-tight">Vibe</h1>
-          <p className="text-white/70 text-xs mt-1">
+          <Sparkles className="w-8 h-8 text-gold mx-auto mb-2" />
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Vibe</h1>
+          <p className="text-muted-foreground text-xs mt-1">
             매일 아침, 당신만의 운세를 확인하세요
           </p>
         </div>
@@ -158,8 +157,8 @@ export function OnboardingPage() {
                   key={role.value}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-xl cursor-pointer transition-all duration-200 ${
                     isSelected
-                      ? "gradient-primary text-white shadow-lg shadow-primary/25 scale-[1.02]"
-                      : "glass hover:bg-accent/50"
+                      ? "bg-card border border-gold/40 text-foreground shadow-lg scale-[1.02]"
+                      : "glass hover:bg-secondary/50"
                   }`}
                 >
                   <input
@@ -168,8 +167,8 @@ export function OnboardingPage() {
                     {...register("jobRole")}
                     className="sr-only"
                   />
-                  <Icon className={`w-5 h-5 ${isSelected ? "text-white" : "text-muted-foreground"}`} />
-                  <div className={`text-xs font-medium ${isSelected ? "text-white" : ""}`}>
+                  <Icon className={`w-5 h-5 ${isSelected ? "text-gold" : "text-muted-foreground"}`} />
+                  <div className={`text-xs font-medium ${isSelected ? "text-foreground" : ""}`}>
                     {role.label}
                   </div>
                 </label>
@@ -192,8 +191,8 @@ export function OnboardingPage() {
                   key={tone.value}
                   className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 ${
                     isSelected
-                      ? "gradient-primary text-white shadow-lg shadow-primary/25 scale-[1.02]"
-                      : "glass hover:bg-accent/50"
+                      ? "bg-card border border-gold/40 text-foreground shadow-lg scale-[1.02]"
+                      : "glass hover:bg-secondary/50"
                   }`}
                 >
                   <input
@@ -203,22 +202,22 @@ export function OnboardingPage() {
                     className="sr-only"
                   />
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                    isSelected ? "bg-white/20" : "bg-secondary"
+                    isSelected ? "bg-gold/15" : "bg-secondary"
                   }`}>
-                    <Icon className={`w-4 h-4 ${isSelected ? "text-white" : "text-muted-foreground"}`} />
+                    <Icon className={`w-4 h-4 ${isSelected ? "text-gold" : "text-muted-foreground"}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-medium ${isSelected ? "text-white" : ""}`}>
+                    <div className={`text-sm font-medium ${isSelected ? "text-foreground" : ""}`}>
                       {tone.label}
                     </div>
-                    <div className={`text-[11px] truncate ${isSelected ? "text-white/70" : "text-muted-foreground"}`}>
+                    <div className={`text-[11px] truncate ${isSelected ? "text-muted-foreground" : "text-muted-foreground"}`}>
                       {tone.desc}
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    isSelected ? "border-white" : "border-muted-foreground/30"
+                    isSelected ? "border-gold" : "border-muted-foreground/30"
                   }`}>
-                    {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                    {isSelected && <div className="w-2 h-2 rounded-full bg-gold" />}
                   </div>
                 </label>
               );
@@ -238,12 +237,12 @@ export function OnboardingPage() {
 
         <Button
           type="submit"
-          className="w-full h-11 rounded-xl gradient-primary text-white font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-200 hover:scale-[1.01]"
+          className="w-full h-11 rounded-xl bg-gold/90 hover:bg-gold text-background font-semibold shadow-lg shadow-black/20 hover:shadow-xl transition-all duration-200 hover:scale-[1.01]"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
               설정 중...
             </div>
           ) : (

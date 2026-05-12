@@ -14,7 +14,6 @@ export function FortuneCard() {
     profile,
     fortune,
     isGenerating,
-    detached,
     fetchFortune,
     setView,
   } = useAppStore();
@@ -124,42 +123,39 @@ ${fortune.combined.body}
   return (
     <div className="flex flex-col h-full animate-fade-in">
       {/* Top gradient header */}
-      <div
-        className="gradient-primary px-4 pt-3 pb-6 relative overflow-hidden"
-        {...(detached ? { "data-tauri-drag-region": true } : {})}
-      >
+      <div className="gradient-primary px-4 pt-3 pb-6 relative overflow-hidden">
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 rounded-lg text-white/60 hover:text-white hover:bg-white/10 mb-1"
+          className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 mb-1"
           onClick={() => setView("home")}
         >
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-1 right-6 text-white text-lg animate-float">✦</div>
-          <div className="absolute bottom-2 left-8 text-white text-sm animate-float" style={{ animationDelay: "0.7s" }}>✧</div>
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute top-1 right-6 text-gold text-lg animate-float">✦</div>
+          <div className="absolute bottom-2 left-8 text-gold text-sm animate-float" style={{ animationDelay: "0.7s" }}>✧</div>
         </div>
         <div className="relative">
-          <p className="text-white/60 text-[11px] font-medium">{dateStr}</p>
+          <p className="text-muted-foreground text-[11px] font-medium">{dateStr}</p>
 
           {/* Badges */}
           <div className="flex gap-2 mt-3">
-            <div className="flex-1 rounded-xl bg-white/15 backdrop-blur-sm p-2.5 text-center border border-white/10">
-              <div className="text-2xl font-bold text-white">{profile.dayMasterHanja}</div>
-              <div className="text-[10px] text-white/80 mt-0.5 font-medium">
+            <div className="flex-1 rounded-xl bg-white/5 backdrop-blur-sm p-2.5 text-center border border-white/5">
+              <div className="text-2xl font-bold text-gold">{profile.dayMasterHanja}</div>
+              <div className="text-[10px] text-foreground/80 mt-0.5 font-medium">
                 {profile.dayMaster}
               </div>
-              <div className="text-[9px] text-white/50 mt-0.5 leading-snug">
+              <div className="text-[9px] text-muted-foreground mt-0.5 leading-snug">
                 {getDayMasterPersonality(profile.dayMaster.charAt(0))}
               </div>
             </div>
-            <div className="flex-1 rounded-xl bg-white/15 backdrop-blur-sm p-2.5 text-center border border-white/10">
-              <div className="text-2xl text-white">{zodiacInfo.symbol}</div>
-              <div className="text-[10px] text-white/80 mt-0.5 font-medium">
+            <div className="flex-1 rounded-xl bg-white/5 backdrop-blur-sm p-2.5 text-center border border-white/5">
+              <div className="text-2xl text-foreground">{zodiacInfo.symbol}</div>
+              <div className="text-[10px] text-foreground/80 mt-0.5 font-medium">
                 {zodiacInfo.ko}
               </div>
-              <div className="text-[9px] text-white/50 mt-0.5">
+              <div className="text-[9px] text-muted-foreground mt-0.5">
                 나의 별자리
               </div>
             </div>
@@ -173,12 +169,12 @@ ${fortune.combined.body}
           <div className="glass-strong rounded-2xl p-6 shadow-lg flex flex-col items-center gap-5">
             {/* Crystal ball */}
             <div className="relative w-20 h-20">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-500/20 via-purple-500/30 to-indigo-500/20 animate-pulse" />
-              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-violet-600/40 via-purple-700/50 to-indigo-800/40 shadow-inner flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-gold/10 animate-pulse" />
+              <div className="absolute inset-2 rounded-full bg-gold/15 shadow-inner flex items-center justify-center">
                 <span className="text-3xl animate-float">🔮</span>
               </div>
-              <div className="absolute -inset-1 rounded-full border border-purple-400/20 animate-spin" style={{ animationDuration: "8s" }} />
-              <div className="absolute -inset-3 rounded-full border border-purple-300/10 animate-spin" style={{ animationDuration: "12s", animationDirection: "reverse" }} />
+              <div className="absolute -inset-1 rounded-full border border-gold/15 animate-spin" style={{ animationDuration: "8s" }} />
+              <div className="absolute -inset-3 rounded-full border border-gold/8 animate-spin" style={{ animationDuration: "12s", animationDirection: "reverse" }} />
             </div>
 
             {/* Steps */}
@@ -194,7 +190,7 @@ ${fortune.combined.body}
                     i < loadingStep
                       ? "bg-green-500/20 text-green-500"
                       : i === loadingStep
-                        ? "gradient-primary text-white shadow-md shadow-primary/30"
+                        ? "bg-gold/20 text-gold shadow-md"
                         : "bg-muted text-muted-foreground"
                   }`}>
                     {i < loadingStep ? (
@@ -229,8 +225,8 @@ ${fortune.combined.body}
                   onClick={() => setActiveTab(tab.key)}
                   className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
                     activeTab === tab.key
-                      ? "gradient-primary text-white shadow-md"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      ? "bg-gold/15 text-gold border border-gold/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   }`}
                 >
                   {tab.label}
@@ -248,7 +244,7 @@ ${fortune.combined.body}
                 </div>
 
                 <div className="glass rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-md shadow-primary/20 shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center shadow-md border border-border shrink-0">
                     <span className="text-lg">{getTenGodEmoji(fortune.saju.relation)}</span>
                   </div>
                   <div className="min-w-0">
@@ -271,7 +267,7 @@ ${fortune.combined.body}
                 </div>
 
                 <div className="glass rounded-xl p-3">
-                  <p className="text-[12px] text-primary font-medium leading-relaxed">
+                  <p className="text-[12px] text-gold font-medium leading-relaxed">
                     {fortune.saju.advice}
                   </p>
                 </div>
@@ -288,8 +284,8 @@ ${fortune.combined.body}
                 </div>
 
                 <div className="glass rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/20 shrink-0">
-                    <span className="text-white text-lg">{zodiacInfo.symbol}</span>
+                  <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center shadow-md border border-border shrink-0">
+                    <span className="text-lg">{zodiacInfo.symbol}</span>
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -309,7 +305,7 @@ ${fortune.combined.body}
                 </div>
 
                 <div className="glass rounded-xl p-3">
-                  <p className="text-[12px] text-primary font-medium leading-relaxed">
+                  <p className="text-[12px] text-gold font-medium leading-relaxed">
                     {fortune.astrology.advice}
                   </p>
                 </div>
@@ -334,12 +330,12 @@ ${fortune.combined.body}
                 {/* Lucky items */}
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { icon: Palette, label: "럭키 컬러", value: fortune.combined.luckyColor, color: "from-pink-500/10 to-rose-500/10" },
-                    { icon: Hash, label: "럭키 넘버", value: fortune.combined.luckyNumber, color: "from-blue-500/10 to-indigo-500/10" },
-                    { icon: UtensilsCrossed, label: "럭키 푸드", value: fortune.combined.luckyFood, color: "from-amber-500/10 to-orange-500/10" },
+                    { icon: Palette, label: "럭키 컬러", value: fortune.combined.luckyColor },
+                    { icon: Hash, label: "럭키 넘버", value: fortune.combined.luckyNumber },
+                    { icon: UtensilsCrossed, label: "럭키 푸드", value: fortune.combined.luckyFood },
                   ].map((item) => (
-                    <div key={item.label} className={`rounded-xl p-2.5 text-center bg-gradient-to-br ${item.color} border border-border/50`}>
-                      <item.icon className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
+                    <div key={item.label} className="rounded-xl p-2.5 text-center bg-card border border-border/50">
+                      <item.icon className="w-4 h-4 mx-auto text-gold/60 mb-1" />
                       <div className="text-[10px] text-muted-foreground">{item.label}</div>
                       <div className="text-xs font-semibold mt-0.5 truncate">{item.value}</div>
                     </div>
@@ -347,9 +343,9 @@ ${fortune.combined.body}
                 </div>
 
                 {/* Warning */}
-                <div className="flex items-start gap-2 rounded-xl bg-red-500/10 dark:bg-red-500/15 border border-red-500/20 dark:border-red-400/25 p-3">
-                  <AlertTriangle className="w-3.5 h-3.5 text-red-500 dark:text-red-400 mt-0.5 shrink-0" />
-                  <p className="text-[11px] text-red-600 dark:text-red-300 leading-relaxed">
+                <div className="flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/15 p-3">
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-400 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-red-300 leading-relaxed">
                     {fortune.combined.warning}
                   </p>
                 </div>
@@ -371,7 +367,7 @@ ${fortune.combined.body}
         <Button
           variant="ghost"
           size="sm"
-          className="flex-1 h-9 rounded-lg text-xs gap-1.5 hover:bg-accent"
+          className="flex-1 h-9 rounded-lg text-xs gap-1.5 hover:bg-secondary"
           onClick={handleCopy}
           disabled={!fortune}
         >
@@ -382,7 +378,7 @@ ${fortune.combined.body}
         <Button
           variant="ghost"
           size="sm"
-          className="flex-1 h-9 rounded-lg text-xs gap-1.5 hover:bg-accent"
+          className="flex-1 h-9 rounded-lg text-xs gap-1.5 hover:bg-secondary"
           onClick={() => fetchFortune(true)}
           disabled={isGenerating}
         >

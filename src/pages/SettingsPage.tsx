@@ -16,7 +16,7 @@ import type { UserProfile } from "@/types";
 const settingsSchema = z.object({
   notificationTime: z.string(),
   jobRole: z.enum(["general", "developer", "designer", "pm"]),
-  tone: z.enum(["default", "warm", "savage", "hype", "calm"]),
+  tone: z.enum(["warm", "savage", "hype", "calm"]),
   theme: z.enum(["auto", "light", "dark"]),
   slackWebhookUrl: z.string(),
   slackAutoShare: z.boolean(),
@@ -31,8 +31,8 @@ function Section({ icon: Icon, title, children }: { icon: typeof User; title: st
   return (
     <div className="glass-strong rounded-2xl p-4 space-y-3 shadow-sm">
       <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-md gradient-primary flex items-center justify-center">
-          <Icon className="w-3 h-3 text-white" />
+        <div className="w-6 h-6 rounded-md bg-gold/15 flex items-center justify-center">
+          <Icon className="w-3 h-3 text-gold" />
         </div>
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {title}
@@ -44,7 +44,7 @@ function Section({ icon: Icon, title, children }: { icon: typeof User; title: st
 }
 
 export function SettingsPage() {
-  const { profile, preferences, fortune, detached, updatePreferences, setProfile, setView, resetAll } =
+  const { profile, preferences, fortune, updatePreferences, setProfile, setView, resetAll } =
     useAppStore();
 
   const {
@@ -124,7 +124,6 @@ export function SettingsPage() {
       {/* Header */}
       <div
         className="flex items-center gap-2 px-3 py-3 border-b border-border/50"
-        {...(detached ? { "data-tauri-drag-region": true } : {})}
       >
         <Button
           variant="ghost"
@@ -186,7 +185,6 @@ export function SettingsPage() {
                   id="tone"
                   {...register("tone")}
                   options={[
-                    { value: "default", label: "기본" },
                     { value: "warm", label: "따뜻한" },
                     { value: "savage", label: "독설" },
                     { value: "hype", label: "하이텐션" },
@@ -219,9 +217,9 @@ export function SettingsPage() {
 
         <Section icon={Terminal} title="Claude CLI">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-              <div className="w-2 h-2 rounded-full bg-blue-500" />
-              <p className="text-[11px] text-blue-700 dark:text-blue-400">로컬 Claude CLI 사용</p>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="w-2 h-2 rounded-full bg-primary" />
+              <p className="text-[11px] text-primary">로컬 Claude CLI 사용</p>
             </div>
             <p className="text-[10px] text-muted-foreground leading-relaxed">
               Claude Max 플랜으로 로그인된 CLI를 사용합니다.
@@ -263,7 +261,7 @@ export function SettingsPage() {
 
         <Button
           type="submit"
-          className="w-full h-10 rounded-xl gradient-primary text-white font-semibold shadow-lg shadow-primary/25 hover:shadow-xl transition-all"
+          className="w-full h-10 rounded-xl bg-gold/90 hover:bg-gold text-background font-semibold shadow-lg shadow-black/20 hover:shadow-xl transition-all"
           disabled={isSubmitting}
         >
           {isSubmitting ? "저장 중..." : "저장"}
