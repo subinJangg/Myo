@@ -98,9 +98,9 @@ export function OnboardingPage() {
         </div>
         <div className="relative">
           <Sparkles className="w-8 h-8 text-gold mx-auto mb-2" />
-          <h1 className="text-xl font-bold text-foreground tracking-tight">Vibe</h1>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">묘 <span className="text-gold text-base font-normal">Myo</span></h1>
           <p className="text-muted-foreground text-xs mt-1">
-            매일 아침, 당신만의 운세를 확인하세요
+            묘하게 잘 맞는 하루
           </p>
         </div>
       </div>

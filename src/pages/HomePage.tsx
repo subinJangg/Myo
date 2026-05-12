@@ -34,7 +34,7 @@ export function HomePage() {
         </div>
         <div className="relative flex items-start justify-between">
           <div>
-            <h1 className="text-foreground font-bold text-lg">Vibe</h1>
+            <h1 className="text-foreground font-bold text-lg">묘 <span className="text-gold text-sm font-normal">Myo</span></h1>
             <p className="text-muted-foreground text-[11px] mt-0.5">{dateStr}</p>
           </div>
           <div className="flex items-center gap-1">
@@ -86,7 +86,7 @@ export function HomePage() {
               <span className="text-2xl">🔮</span>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold">오늘의 운세</h3>
+              <h3 className="text-sm font-semibold">오늘의 묘</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 사주 · 별자리 · 종합 운세 보기
               </p>
@@ -112,7 +112,7 @@ export function HomePage() {
               <span className="text-2xl">🃏</span>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold">오늘의 타로</h3>
+              <h3 className="text-sm font-semibold">묘한 카드</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 오늘의 카드 한 장 뽑기
               </p>
@@ -132,7 +132,7 @@ export function HomePage() {
       {/* Footer */}
       <div className="px-4 py-3 border-t border-border/50 bg-card/50 backdrop-blur-sm">
         <p className="text-center text-[10px] text-muted-foreground">
-          Vibe v0.1.0
+          묘 Myo v0.1.0
         </p>
       </div>
     </div>

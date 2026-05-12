@@ -97,7 +97,7 @@ export function FortuneCard() {
 
   const handleCopy = async () => {
     if (!fortune) return;
-    const text = `☯ Vibe - ${dateStr}
+    const text = `☯ 묘 Myo - ${dateStr}
 
 🔮 ${fortune.combined.headline}
 
@@ -354,7 +354,7 @@ ${fortune.combined.body}
           </div>
         ) : (
           <div className="glass-strong rounded-2xl p-8 shadow-lg flex flex-col items-center justify-center gap-3">
-            <p className="text-sm text-muted-foreground">운세를 불러올 수 없습니다</p>
+            <p className="text-sm text-muted-foreground">오늘의 묘가 아직 도착하지 않았어요</p>
             <Button size="sm" variant="outline" className="rounded-lg" onClick={() => fetchFortune(true)}>
               <RefreshCw className="w-3 h-3 mr-1.5" /> 다시 시도
             </Button>

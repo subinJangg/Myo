@@ -124,7 +124,7 @@ export function TarotPage() {
 
   const handleCopy = async () => {
     if (!card) return;
-    const text = `🃏 오늘의 타로 — ${card.nameKo} (${card.name})
+    const text = `🃏 묘한 카드 — ${card.nameKo} (${card.name})
 
 "${headline}"
 
@@ -152,7 +152,7 @@ ${advice}`;
         >
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <h2 className="font-semibold text-sm">타로 카드 뒤집기</h2>
+        <h2 className="font-semibold text-sm">묘한 카드</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4">

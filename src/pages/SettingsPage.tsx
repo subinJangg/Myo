@@ -282,7 +282,7 @@ export function SettingsPage() {
         </Button>
 
         <p className="text-center text-[10px] text-muted-foreground pb-1">
-          Vibe v0.1.0
+          묘 Myo v0.1.0
         </p>
       </form>
     </div>

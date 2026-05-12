@@ -17,7 +17,7 @@ export async function sendToSlack(
             type: "header",
             text: {
               type: "plain_text",
-              text: `오늘의 Vibe ✦ ${fortune.date}`,
+              text: `오늘의 묘 ✦ ${fortune.date}`,
             },
           },
           {
