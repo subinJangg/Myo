@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicehash/tauri/dev/crates/tauri-schema-generator/schemas/config.schema.json",
-  "productName": "Vibe",
+  "productName": "Myo",
   "version": "0.1.0",
-  "identifier": "com.vibe.fortune",
+  "identifier": "com.myo.fortune",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Vibe",
+        "title": "묘 Myo",
         "width": 380,
         "height": 620,
         "minWidth": 320,
@@ -33,7 +33,7 @@
       "id": "main-tray",
       "iconPath": "icons/tray-icon.png",
       "iconAsTemplate": false,
-      "tooltip": "Vibe - 오늘의 운세"
+      "tooltip": "묘 Myo — 묘하게 잘 맞는 하루"
     },
     "security": {
       "csp": null

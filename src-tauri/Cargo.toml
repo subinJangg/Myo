@@ -1,12 +1,12 @@
 [package]
-name = "vibe"
+name = "myo"
 version = "0.1.0"
-description = "Daily fortune tray app combining Saju and Astrology"
+description = "묘 — 사주·별자리·타로를 하루치로 풀어주는 데스크탑 운세 앱"
 authors = ["you"]
 edition = "2021"
 
 [lib]
-name = "vibe_lib"
+name = "myo_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [build-dependencies]
