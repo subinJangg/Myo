@@ -25,7 +25,7 @@ export type TenGod =
   | "정인";
 
 export type JobRole = "general" | "developer" | "designer" | "pm";
-export type Tone = "default" | "warm" | "savage" | "hype" | "calm";
+export type Tone = "warm" | "savage" | "hype" | "calm";
 
 export type BirthLocation = {
   name: string;

@@ -11,7 +11,6 @@ export function buildStyleGuide(jobRole: JobRole, tone: Tone): string {
   };
 
   const toneGuide: Record<Tone, string> = {
-    default: "친절하고 자연스러운 톤으로 작성하세요.",
     warm: "따뜻하고 응원하는 말투로 작성하세요. 힘이 되는 느낌으로.",
     savage: "독설 섞인 유머러스한 말투로 작성하세요. 팩트로 때리되 애정이 담긴 느낌. 반말 사용.",
     hype: "하이텐션으로 과장되게 작성하세요. 느낌표 많이, 에너지 넘치게. 반말 사용.",
