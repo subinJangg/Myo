@@ -5,39 +5,46 @@ export default {
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        gold: {
-          DEFAULT: "hsl(var(--gold) / <alpha-value>)",
-          light: "hsl(var(--gold-light) / <alpha-value>)",
+        background: "#0E1421",
+        foreground: "#F5F1E8",
+        card: {
+          DEFAULT: "#1A2233",
+          foreground: "#F5F1E8",
+          active: "#223041",
         },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "#C8A96B",
+          foreground: "#0E1421",
+          light: "#E3C88A",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#1A2233",
+          foreground: "#F5F1E8",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#1A2233",
+          foreground: "#6E7783",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "#1A2233",
+          foreground: "#F5F1E8",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "hsl(0 70% 45%)",
+          foreground: "hsl(0 0% 98%)",
         },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+        border: "#2B3746",
+        input: "#2B3746",
+        ring: "#C8A96B",
+        gold: {
+          DEFAULT: "#C8A96B",
+          light: "#E3C88A",
         },
+        subtext: "#A9B3BF",
+      },
+      fontFamily: {
+        serif: ["Cinzel", "Noto Serif KR", "serif"],
+        sans: ["Pretendard", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -17,7 +17,7 @@ function SparkleField() {
       xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="none"
     >
-      <g fill="#D4AF37" opacity="0.5">
+      <g fill="#C8A96B" opacity="0.5">
         <circle cx="60" cy="90" r="1" />
         <circle cx="410" cy="130" r="0.8" />
         <circle cx="80" cy="260" r="1" />

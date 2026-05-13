@@ -1,8 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { useAppStore } from "@/stores/appStore";
 import { OrnateButton } from "@/components/OrnateButton";
-import { formatLunarDate } from "@/lib/calendar";
 
 function SparkleField() {
   return (
@@ -12,7 +11,7 @@ function SparkleField() {
       xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="none"
     >
-      <g fill="#D4AF37" opacity="0.5">
+      <g fill="#C8A96B" opacity="0.5">
         <circle cx="55" cy="70" r="1" />
         <circle cx="410" cy="110" r="0.8" />
         <circle cx="75" cy="250" r="1" />
@@ -43,15 +42,15 @@ function StarCircle() {
     <svg
       className="absolute inset-0 pointer-events-none"
       viewBox="0 0 200 200"
-      width="200"
-      height="200"
+      width="140"
+      height="140"
     >
-      <g fill="#D4AF37" opacity="0.3">
+      <g fill="#C8A96B" opacity="0.3">
         {dots.map((d, i) => (
           <circle key={i} cx={d.cx} cy={d.cy} r={d.size} />
         ))}
       </g>
-      <g fill="#D4AF37" opacity="0.45">
+      <g fill="#C8A96B" opacity="0.45">
         <polygon points="100,9 101,12 104,13 101,14 100,17 99,14 96,13 99,12" />
         <polygon points="191,100 192,103 195,104 192,105 191,108 190,105 187,104 190,103" />
         <polygon points="100,191 101,194 104,195 101,196 100,199 99,196 96,195 99,194" />
@@ -61,23 +60,16 @@ function StarCircle() {
   );
 }
 
-function Divider() {
-  return (
-    <div className="flex items-center justify-center gap-2.5 my-4">
-      <span className="w-16 h-[0.3px] bg-primary/40" />
-      <svg className="text-primary/60" width="8" height="8" viewBox="0 0 32 32">
-        <polygon
-          points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7"
-          fill="currentColor"
-        />
-      </svg>
-      <span className="w-16 h-[0.3px] bg-primary/40" />
-    </div>
-  );
-}
 
 export function HomePage() {
-  const { profile, fortune, setView, fetchFortune } = useAppStore();
+  const { profile, fortune, detached, toggleDetached, setView, fetchFortune } = useAppStore();
+  const [pinHover, setPinHover] = useState(false);
+  const [comingSoon, setComingSoon] = useState(false);
+
+  const showComingSoon = useCallback(() => {
+    setComingSoon(true);
+    setTimeout(() => setComingSoon(false), 2000);
+  }, []);
 
   useEffect(() => {
     if (profile && !fortune) {
@@ -89,62 +81,58 @@ export function HomePage() {
 
   const today = new Date();
   const dateStr = format(today, "yyyy.MM.dd EEE").toUpperCase();
-  const lunarStr = formatLunarDate(today);
 
   return (
     <div className="flex flex-col h-full bg-background">
       <div className="flex-1 overflow-hidden">
-        <div className="ornate-frame relative min-h-full">
+        <div className="ornate-frame relative h-full">
           <SparkleField />
-          <div className="relative z-[1] px-[18px] py-[22px]">
+          <div className="relative z-[1] px-[30px] py-[30px] flex flex-col h-full">
           {/* Header */}
-          <div className="text-center mb-3 mt-2">
+          <div className="text-center mb-1 mt-5">
             <div className="flex items-center justify-center gap-3">
-              <span className="w-[50px] h-[0.5px] bg-primary" />
+              <span className="w-[50px] h-[1px] bg-primary/70" />
               <svg className="text-primary" width="10" height="10" viewBox="0 0 32 32">
                 <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
               </svg>
-              <span className="text-[24px] text-primary tracking-[3px]" style={{ fontFamily: "'Spectral SC', serif" }}>
+              <span className="text-[24px] text-primary-light tracking-[3px]" style={{ fontFamily: "'Spectral SC', serif" }}>
                 myo
               </span>
               <svg className="text-primary" width="10" height="10" viewBox="0 0 32 32">
                 <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
               </svg>
-              <span className="w-[50px] h-[0.5px] bg-primary" />
+              <span className="w-[50px] h-[1px] bg-primary/70" />
             </div>
-            <p className="font-serif text-[13px] text-subtext mt-3 tracking-[3px]">
+            <p className="font-serif text-[13px] text-foreground/80 mt-2 tracking-[3px]">
               묘하게 잘 맞는 하루
             </p>
-            <p className="text-[12px] text-subtext/70 mt-3 tracking-[1.5px]">
+            <p className="text-[12px] text-subtext mt-2 tracking-[1.5px]">
               {dateStr}
-            </p>
-            <p className="text-[11px] text-subtext/50 mt-1 tracking-[1px]">
-              {lunarStr}
             </p>
           </div>
 
           {/* Hero illustration */}
-          <div className="flex justify-center mb-2">
-            <div className="relative w-[200px] h-[200px] flex items-center justify-center">
+          <div className="flex justify-center items-center py-4">
+            <div className="relative w-[140px] h-[140px] flex items-center justify-center">
               <StarCircle />
               <img
                 src="/moon-cat.png"
                 alt="묘"
-                className="relative z-[1] w-[130px] pointer-events-none select-none animate-float"
+                className="relative z-[1] w-[105px] pointer-events-none select-none animate-float"
                 draggable={false}
               />
             </div>
           </div>
 
           {/* TODAY'S READING */}
-          <div className="text-center mb-4">
-            <p className="text-[10px] text-primary tracking-[4px] font-serif uppercase mb-2">
+          <div className="text-center mb-3">
+            <p className="text-[10px] text-primary-light tracking-[4px] font-serif uppercase mb-1.5">
               TODAY'S READING
             </p>
-            <p className="text-[20px] text-foreground font-serif font-medium tracking-[1px]">
+            <p className="text-[16px] text-foreground font-serif font-medium tracking-[1px]">
               오늘의 묘 보기
             </p>
-            <p className="text-[11px] text-subtext mt-1.5 tracking-[1px]">
+            <p className="text-[11px] text-subtext mt-1 tracking-[1px]">
               사주 · 별자리 · 종합 풀이를 펼치다
             </p>
           </div>
@@ -156,13 +144,11 @@ export function HomePage() {
             </OrnateButton>
           </div>
 
-          <Divider />
-
           {/* Feature Grid */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-3 gap-2 mb-2">
             <button
               onClick={() => setView("tarot")}
-              className="bg-card/40 border border-primary/40 rounded-md py-3 px-2 text-center hover:border-primary/50 active:scale-[0.97] transition-all"
+              className="bg-card/40 border border-primary/70 rounded-md py-3 px-2 text-center hover:border-primary hover:bg-primary/10 active:scale-[0.97] transition-all"
             >
               <svg
                 className="mx-auto mb-1.5 text-primary"
@@ -185,7 +171,7 @@ export function HomePage() {
                 tarot
               </p>
             </button>
-            <div className="bg-card/40 border border-primary/40 rounded-md py-3 px-2 text-center opacity-40">
+            <button onClick={showComingSoon} className="bg-card/40 border border-primary/40 rounded-md py-3 px-2 text-center opacity-40 hover:opacity-70 hover:border-primary/60 hover:bg-primary/10 active:scale-[0.97] transition-all cursor-pointer">
               <svg
                 className="mx-auto mb-1.5 text-primary"
                 width="22"
@@ -202,8 +188,8 @@ export function HomePage() {
               <p className="text-[9px] text-muted-foreground mt-0.5 tracking-[1px] font-serif uppercase">
                 compatibility
               </p>
-            </div>
-            <div className="bg-card/40 border border-primary/40 rounded-md py-3 px-2 text-center opacity-40">
+            </button>
+            <button onClick={showComingSoon} className="bg-card/40 border border-primary/40 rounded-md py-3 px-2 text-center opacity-40 hover:opacity-70 hover:border-primary/60 hover:bg-primary/10 active:scale-[0.97] transition-all cursor-pointer">
               <svg
                 className="mx-auto mb-1.5 text-primary"
                 width="22"
@@ -223,12 +209,51 @@ export function HomePage() {
               <p className="text-[9px] text-muted-foreground mt-0.5 tracking-[1px] font-serif uppercase">
                 full saju
               </p>
-            </div>
+            </button>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="flex items-center justify-center gap-5 mt-5 mb-2" style={{ fontFamily: "'Cinzel', serif" }}>
+            <button
+              onClick={() => { toggleDetached(); setPinHover(false); }}
+              onMouseEnter={() => setPinHover(true)}
+              onMouseLeave={() => setPinHover(false)}
+              className={`text-primary-light text-[10px] tracking-[2px] uppercase inline-flex items-center gap-1.5 transition-opacity ${pinHover ? "opacity-100" : "opacity-60"}`}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="17" x2="12" y2="22" />
+                <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h-2v4" />
+                <circle cx="12" cy="4" r="2" />
+                {!detached && <line x1="4" y1="4" x2="20" y2="20" />}
+              </svg>
+              {detached ? "pin" : "unpin"}
+            </button>
+            <span className="w-[0.5px] h-3 bg-primary/30" />
+            <button
+              onClick={() => setView("settings")}
+              className="text-primary-light text-[10px] tracking-[2px] uppercase inline-flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+              </svg>
+              settings
+            </button>
           </div>
 
           </div>
         </div>
       </div>
+
+      {comingSoon && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="bg-[#1A2233]/95 border border-primary/40 rounded-lg px-7 py-4 text-center shadow-[0_0_20px_rgba(0,0,0,0.4)] backdrop-blur-sm animate-fade-in-out">
+            <p className="text-[10px] text-primary/70 tracking-[3px] uppercase mb-1.5" style={{ fontFamily: "'Cinzel', serif" }}>coming soon</p>
+            <p className="text-[14px] text-foreground font-serif tracking-[1px]">묘한 기능을 준비 중이에요</p>
+            <p className="text-[11px] text-subtext/70 mt-1.5 tracking-[1px]">오픈을 기다려주세요!</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
