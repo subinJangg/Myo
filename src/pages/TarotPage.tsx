@@ -125,61 +125,30 @@ function MinorCardFace({ card }: { card: TarotCard }) {
   );
 }
 
-function FanRow({ count, offset, selectedIndex, onSelect }: { count: number; offset: number; selectedIndex: number | null; onSelect: (i: number) => void }) {
-  const mid = (count - 1) / 2;
-  const fanAngle = 50;
+function ArcDecoration() {
+  const rays = Array.from({ length: 35 }, (_, i) => {
+    const angle = Math.PI * (0.05 + (i / 34) * 0.9);
+    const r1 = 20;
+    const r2 = 55 + (i % 3 === 0 ? 40 : i % 2 === 0 ? 25 : 15);
+    return { x1: 160 - Math.cos(angle) * r1, y1: 165 - Math.sin(angle) * r1, x2: 160 - Math.cos(angle) * r2, y2: 165 - Math.sin(angle) * r2 };
+  });
+  const dots = Array.from({ length: 40 }, (_, i) => {
+    const angle = Math.PI * (i / 39);
+    const r = 128;
+    return { cx: 160 - Math.cos(angle) * r, cy: 165 - Math.sin(angle) * r };
+  });
 
   return (
-    <div className="relative h-[140px] flex items-end justify-center">
-      <div className="relative" style={{ width: 56, height: 82 }}>
-        {Array.from({ length: count }).map((_, i) => {
-          const globalIndex = offset + i;
-          const angle = mid === 0 ? 0 : ((i - mid) / mid) * (fanAngle / 2);
-          const isSelected = selectedIndex === globalIndex;
-
-          return (
-            <button
-              key={i}
-              onClick={() => onSelect(globalIndex)}
-              className={`absolute bottom-0 left-0 w-[56px] h-[82px] rounded-[4px] border bg-[#131c26] overflow-hidden transition-all duration-300 ${
-                isSelected
-                  ? "border-primary shadow-[0_0_16px_rgba(200,169,107,0.5)] z-20"
-                  : selectedIndex !== null
-                    ? "border-primary/25 opacity-40"
-                    : "border-primary/60 hover:border-primary hover:z-20"
-              }`}
-              style={{
-                transformOrigin: "center 240px",
-                transform: isSelected
-                  ? "rotate(0deg) translateY(-20px) scale(1.15)"
-                  : `rotate(${angle}deg)`,
-                zIndex: isSelected ? 20 : i,
-                boxShadow: isSelected ? undefined : "0 2px 8px rgba(0,0,0,0.4)",
-              }}
-              onMouseEnter={(e) => {
-                if (selectedIndex === null) e.currentTarget.style.transform = `rotate(${angle}deg) translateY(-14px)`;
-              }}
-              onMouseLeave={(e) => {
-                if (selectedIndex === null) e.currentTarget.style.transform = `rotate(${angle}deg)`;
-              }}
-            >
-              <div className="absolute inset-[2px] border border-dashed border-primary/25 rounded-[2px] pointer-events-none" />
-              <img
-                src="/moon-cat.png"
-                alt=""
-                className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[34px] pointer-events-none opacity-50"
-              />
-              <span
-                className="absolute bottom-[4px] left-1/2 -translate-x-1/2 text-[6px] text-foreground/50"
-                style={{ fontFamily: "'Spectral SC', serif" }}
-              >
-                myo
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <svg className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-0" style={{ bottom: 120, width: 320, height: 180 }} viewBox="0 0 320 180">
+      <path d="M 8 165 A 152 152 0 0 1 312 165" fill="none" stroke="#C8A96B" strokeWidth="0.5" strokeOpacity="0.18" strokeDasharray="2 6" />
+      {dots.map((d, i) => <circle key={`d${i}`} cx={d.cx} cy={d.cy} r="0.5" fill="#C8A96B" fillOpacity="0.12" />)}
+      {rays.map((r, i) => <line key={`r${i}`} x1={r.x1} y1={r.y1} x2={r.x2} y2={r.y2} stroke="#C8A96B" strokeWidth="0.3" strokeOpacity="0.08" />)}
+      <polygon points="160,30 161.8,36 168,37 161.8,38 160,44 158.2,38 152,37 158.2,36" fill="#C8A96B" fillOpacity="0.35" />
+      <circle cx="90" cy="65" r="0.7" fill="#C8A96B" fillOpacity="0.2" />
+      <circle cx="230" cy="55" r="0.5" fill="#C8A96B" fillOpacity="0.15" />
+      <circle cx="60" cy="110" r="0.4" fill="#C8A96B" fillOpacity="0.12" />
+      <circle cx="260" cy="100" r="0.6" fill="#C8A96B" fillOpacity="0.15" />
+    </svg>
   );
 }
 
@@ -194,6 +163,7 @@ export function TarotPage() {
   const [advice, setAdvice] = useState("");
   const [readingMsg, setReadingMsg] = useState("");
   const [copied, setCopied] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const readingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const shuffledIndices = useMemo(() => {
@@ -326,7 +296,7 @@ ${advice}`;
           <div className="relative z-[1] px-[30px] py-[22px] flex flex-col h-full">
 
           {/* Navbar */}
-          <div className="flex items-center justify-between mt-2 mb-1">
+          <div className="flex items-center justify-between mt-3 mb-3">
             <button
               onClick={() => setView("home")}
               className="text-primary/60 hover:text-primary transition-colors"
@@ -348,46 +318,134 @@ ${advice}`;
           </div>
 
           {/* Header */}
-          <div className="text-center mb-2">
-            <div className="flex items-center justify-center gap-3">
-              <span className="w-[50px] h-[1px] bg-primary/70" />
-              <svg className="text-primary" width="10" height="10" viewBox="0 0 32 32">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2.5">
+              <span className="w-[45px] h-[1px] bg-primary/70" />
+              <svg className="text-primary" width="9" height="9" viewBox="0 0 32 32">
                 <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
               </svg>
               <span
-                className="text-[20px] text-primary-light tracking-[3px]"
+                className="text-[18px] text-primary-light tracking-[3px]"
                 style={{ fontFamily: "'Spectral SC', serif" }}
               >
-                myo
+                myo card
               </span>
-              <svg className="text-primary" width="10" height="10" viewBox="0 0 32 32">
+              <svg className="text-primary" width="9" height="9" viewBox="0 0 32 32">
                 <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
               </svg>
-              <span className="w-[50px] h-[1px] bg-primary/70" />
+              <span className="w-[45px] h-[1px] bg-primary/70" />
             </div>
-            <p className="font-serif text-[14px] text-foreground/80 mt-2 tracking-[2px]">
-              묘한 카드
-            </p>
             <p
-              className="text-[10px] text-subtext mt-1 tracking-[2px]"
-              style={{ fontFamily: "'Cinzel', serif" }}
+              className="text-[15px] text-foreground/80 mt-2 tracking-[2px]"
+              style={{ fontFamily: "'Noto Serif KR', serif" }}
             >
-              today's one card
+              묘한 카드
             </p>
           </div>
 
-          {/* Draw phase - 2-row grid */}
+          {/* Draw phase */}
           {phase === "draw" && (
-            <div className="flex-1 flex flex-col justify-center animate-fade-in">
-              <p
-                className="text-center text-[10px] text-subtext/70 mb-2 tracking-[2px]"
-                style={{ fontFamily: "'Cinzel', serif" }}
+            <div className="flex-1 flex flex-col items-center overflow-hidden animate-fade-in">
+              {/* Arc decoration */}
+              <img
+                src="/arc-decoration.png"
+                alt=""
+                className="pointer-events-none shrink-0 select-none opacity-80"
+                style={{ width: 360, height: 185 }}
+                draggable={false}
+              />
+
+              {/* Choose your card + moon divider */}
+              <div className="text-center mb-3 shrink-0 -mt-10">
+                <p
+                  className="text-[13px] text-subtext/60 tracking-[4px] uppercase"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  choose your card
+                </p>
+                <div className="flex items-center justify-center gap-3 mt-3">
+                  <span className="w-16 h-[1px] bg-primary/40" />
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#C8A96B" fillOpacity="0.7" />
+                  </svg>
+                  <span className="w-16 h-[1px] bg-primary/40" />
+                </div>
+              </div>
+
+              {/* Card fan — angle-based hover detection */}
+              <div
+                className="relative w-full shrink-0 cursor-pointer"
+                style={{ height: 165 }}
+                onMouseMove={(e) => {
+                  if (selectedIndex !== null) return;
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const mx = e.clientX - rect.left;
+                  const my = e.clientY - rect.top;
+                  const pivotX = rect.width / 2;
+                  const pivotY = rect.height + 175;
+                  const dx = mx - pivotX;
+                  const dy = my - pivotY;
+                  const deg = Math.atan2(dx, -dy) * (180 / Math.PI);
+                  if (deg < -34 || deg > 34) { setHoveredIndex(null); return; }
+                  const idx = Math.round(((deg + 28) / 56) * 21);
+                  setHoveredIndex(Math.max(0, Math.min(21, idx)));
+                }}
+                onMouseLeave={() => { if (selectedIndex === null) setHoveredIndex(null); }}
+                onClick={() => { if (hoveredIndex !== null && selectedIndex === null) handleSelectCard(hoveredIndex); }}
               >
-                choose your card
-              </p>
-              <FanRow count={39} offset={0} selectedIndex={selectedIndex} onSelect={handleSelectCard} />
-              <div className="h-2" />
-              <FanRow count={39} offset={39} selectedIndex={selectedIndex} onSelect={handleSelectCard} />
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2" style={{ width: 74, height: 108 }}>
+                  {Array.from({ length: 22 }).map((_, i) => {
+                    const t = (i / 21) * 2 - 1;
+                    const angle = t * 28;
+                    const isSelected = selectedIndex === i;
+                    const isHovered = hoveredIndex === i;
+
+                    return (
+                      <div
+                        key={i}
+                        className={`absolute bottom-0 left-0 w-[74px] h-[108px] rounded-[5px] border bg-[#131c26] overflow-hidden pointer-events-none ${
+                          isSelected
+                            ? "border-primary shadow-[0_0_20px_rgba(200,169,107,0.6)]"
+                            : selectedIndex !== null
+                              ? "border-primary/15 opacity-25"
+                              : isHovered
+                                ? "border-primary/80"
+                                : "border-primary/30"
+                        }`}
+                        style={{
+                          transformOrigin: "center 270px",
+                          transform: isSelected
+                            ? "rotate(0deg) translateY(-22px) scale(1.15)"
+                            : isHovered
+                              ? `rotate(${angle * 0.3}deg) translateY(-16px) scale(1.08)`
+                              : `rotate(${angle}deg)`,
+                          zIndex: isSelected ? 50 : isHovered ? 45 : i,
+                          transition: "transform 0.3s ease, opacity 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease",
+                          boxShadow: isSelected
+                            ? undefined
+                            : isHovered
+                              ? "0 6px 20px rgba(200,169,107,0.3)"
+                              : "0 2px 4px rgba(0,0,0,0.4)",
+                        }}
+                      >
+                        <div className="absolute inset-[2px] border border-dashed border-primary/15 rounded-[3px]" />
+                        <img
+                          src="/moon-cat.png"
+                          alt=""
+                          className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[34px] opacity-30"
+                        />
+                        <span
+                          className="absolute bottom-[2px] left-1/2 -translate-x-1/2 text-[4px] text-foreground/25"
+                          style={{ fontFamily: "'Spectral SC', serif" }}
+                        >
+                          myo
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="flex-[3]" />
             </div>
           )}
 
@@ -473,55 +531,112 @@ ${advice}`;
               </div>
 
               {/* Interpretation section */}
-              <div className="mt-4">
-                {phase === "reading" ? (
-                  <div className="flex flex-col items-center gap-3 py-3 animate-fade-in">
+              {phase === "reading" && (
+                <div className="mt-4 animate-fade-in">
+                  <div className="flex items-center justify-center gap-2.5 my-3">
+                    <span className="w-10 h-[0.5px] bg-primary/30" />
+                    <svg className="text-primary/50" width="7" height="7" viewBox="0 0 32 32">
+                      <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
+                    </svg>
+                    <span className="w-10 h-[0.5px] bg-primary/30" />
+                  </div>
+                  <div className="flex flex-col items-center gap-3 py-2">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                      <span className="text-[11px] text-subtext tracking-[1px]" style={{ fontFamily: "'Noto Serif KR', serif" }}>해석 중...</span>
+                      <Loader2 className="w-4 h-4 animate-spin text-primary/70" />
+                      <span
+                        className="text-[11px] text-primary/70 tracking-[2px]"
+                        style={{ fontFamily: "'Cinzel', serif" }}
+                      >
+                        reading...
+                      </span>
                     </div>
-                    <p className="text-[11px] text-subtext/50 italic animate-pulse text-center" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                    <p
+                      className="text-[11px] text-subtext/50 italic animate-pulse text-center"
+                      style={{ fontFamily: "'Noto Serif KR', serif" }}
+                    >
                       {readingMsg}
                     </p>
                   </div>
-                ) : phase === "result" ? (
-                  <div className="animate-fade-in">
-                    {headline && (
-                      <p className="text-[14px] text-foreground font-medium leading-[1.5] mb-2.5" style={{ fontFamily: "'Noto Serif KR', serif" }}>
-                        "{headline}"
-                      </p>
-                    )}
-                    {interpretation && (
-                      <p className="text-[11.5px] text-foreground/80 leading-[1.9]" style={{ fontFamily: "'Noto Serif KR', serif" }}>
-                        {interpretation}
-                      </p>
-                    )}
-                    {advice && (
-                      <p className="text-[11px] text-primary/70 mt-3 leading-[1.6] tracking-[0.3px]" style={{ fontFamily: "'Noto Serif KR', serif" }}>
-                        ✦ {advice}
-                      </p>
-                    )}
-                  </div>
-                ) : null}
-              </div>
+                </div>
+              )}
 
               {phase === "result" && (
-                <div className="flex gap-2 mt-5 pb-2 animate-fade-in">
-                  <button
-                    onClick={handleReset}
-                    className="flex-1 py-2.5 rounded-md border border-primary/40 text-subtext text-[11px] tracking-[1px] hover:border-primary hover:text-foreground transition-all"
-                    style={{ fontFamily: "'Noto Serif KR', serif" }}
-                  >
-                    다시 뽑기
-                  </button>
-                  <button
-                    onClick={handleCopy}
-                    className="flex-1 py-2.5 rounded-md bg-primary text-background text-[11px] font-medium tracking-[1px] hover:bg-primary/90 transition-all flex items-center justify-center gap-1.5"
-                    style={{ fontFamily: "'Noto Serif KR', serif" }}
-                  >
-                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copied ? "복사됨" : "복사"}
-                  </button>
+                <div className="mt-3 animate-fade-in">
+                  {/* Divider */}
+                  <div className="flex items-center justify-center gap-2.5 mb-4">
+                    <span className="w-10 h-[0.5px] bg-primary/30" />
+                    <span
+                      className="text-[9px] text-primary/50 tracking-[3px] uppercase"
+                      style={{ fontFamily: "'Cinzel', serif" }}
+                    >
+                      reading
+                    </span>
+                    <span className="w-10 h-[0.5px] bg-primary/30" />
+                  </div>
+
+                  {/* Headline */}
+                  {headline && (
+                    <p
+                      className="text-[15px] text-primary-light font-medium leading-[1.5] mb-3 text-center tracking-[0.5px]"
+                      style={{ fontFamily: "'Noto Serif KR', serif" }}
+                    >
+                      &ldquo;{headline}&rdquo;
+                    </p>
+                  )}
+
+                  {/* Interpretation */}
+                  {interpretation && (
+                    <p
+                      className="text-[11.5px] text-foreground/75 leading-[2]"
+                      style={{ fontFamily: "'Noto Serif KR', serif" }}
+                    >
+                      {interpretation}
+                    </p>
+                  )}
+
+                  {/* Advice card */}
+                  {advice && (
+                    <div className="mt-4 px-3 py-2.5 border border-primary/25 rounded-md bg-primary/[0.04]">
+                      <div className="flex items-start gap-2">
+                        <svg className="text-primary/60 mt-[2px] shrink-0" width="12" height="12" viewBox="0 0 32 32">
+                          <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
+                        </svg>
+                        <div>
+                          <p
+                            className="text-[9px] text-primary/50 tracking-[2px] uppercase mb-1"
+                            style={{ fontFamily: "'Cinzel', serif" }}
+                          >
+                            today's advice
+                          </p>
+                          <p
+                            className="text-[11.5px] text-foreground/85 leading-[1.7]"
+                            style={{ fontFamily: "'Noto Serif KR', serif" }}
+                          >
+                            {advice}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Buttons */}
+                  <div className="flex gap-2 mt-5 pb-2">
+                    <button
+                      onClick={handleReset}
+                      className="flex-1 py-2.5 rounded-md border border-primary/30 text-subtext/80 text-[11px] tracking-[1px] hover:border-primary/60 hover:text-foreground transition-all"
+                      style={{ fontFamily: "'Noto Serif KR', serif" }}
+                    >
+                      다시 뽑기
+                    </button>
+                    <button
+                      onClick={handleCopy}
+                      className="flex-1 py-2.5 rounded-md bg-primary/90 text-background text-[11px] font-medium tracking-[1px] hover:bg-primary transition-all flex items-center justify-center gap-1.5"
+                      style={{ fontFamily: "'Noto Serif KR', serif" }}
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? "복사됨" : "복사"}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
