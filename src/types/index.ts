@@ -81,7 +81,10 @@ export type DailyFortune = {
   combined: {
     headline: string;
     body: string;
+    luckScore: number;
+    caution: string;
     luckyColor: string;
+    luckyColorHex: string;
     luckyNumber: number;
     luckyFood: string;
     warning: string;

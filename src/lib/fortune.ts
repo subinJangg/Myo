@@ -54,8 +54,11 @@ function buildPrompt(
   "combined": {
     "headline": "사주+별자리 종합 한 줄 요약 (15자 이내)",
     "body": "두 관점을 종합한 본문 3-5줄",
-    "luckyColor": "색상 이름",
-    "luckyNumber": 1,
+    "luckScore": 0~100 사이 정수 (오늘의 묘 지수),
+    "caution": "주의할 묘 한 줄 (오늘 조심해야 할 구체적 행동)",
+    "luckyColor": "색상 한글 이름",
+    "luckyColorHex": "#RRGGBB 형식 HEX 컬러 코드",
+    "luckyNumber": 1~9 사이 정수,
     "luckyFood": "음식 이름",
     "warning": "주의사항 한 줄"
   }
@@ -74,10 +77,19 @@ function generateFallbackFortune(
   tenGod: string,
   tenGodDesc: string,
 ): FallbackResult {
-  const colors = ["파란색", "초록색", "빨간색", "노란색", "보라색", "주황색", "분홍색"];
+  const colors = [
+    { name: "코발트 블루", hex: "#4A6FB5" },
+    { name: "에메랄드", hex: "#50C878" },
+    { name: "루비 레드", hex: "#E0115F" },
+    { name: "앰버 골드", hex: "#FFBF00" },
+    { name: "라벤더", hex: "#B57EDC" },
+    { name: "선셋 오렌지", hex: "#FF6347" },
+    { name: "로즈 핑크", hex: "#FF66CC" },
+  ];
   const foods = ["김밥", "된장찌개", "비빔밥", "떡볶이", "삼겹살", "냉면", "치킨"];
   const today = new Date();
   const seed = today.getDate() + today.getMonth();
+  const luckyColor = colors[seed % colors.length];
 
   return {
     saju: {
@@ -93,7 +105,10 @@ function generateFallbackFortune(
     combined: {
       headline: `${tenGod}의 기운이 감도는 하루`,
       body: `오늘 ${profile.dayMaster}(${profile.dayMasterHanja}) 일간인 당신에게 ${todayPillar.fullName}(${todayPillar.stemHanja})의 기운이 찾아옵니다. ${tenGodDesc} 별자리 ${profile.zodiacSign}의 영향도 더해져, 오늘은 특별한 하루가 될 수 있습니다.`,
-      luckyColor: colors[seed % colors.length],
+      luckScore: 50 + (seed % 40),
+      caution: "급한 결정은 피하고, 한 번 더 생각해보세요.",
+      luckyColor: luckyColor.name,
+      luckyColorHex: luckyColor.hex,
       luckyNumber: (seed % 9) + 1,
       luckyFood: foods[seed % foods.length],
       warning: "급한 결정은 피하고, 한 번 더 생각해보세요.",
@@ -128,7 +143,11 @@ export async function generateDailyFortune(
     const result = await invoke<string>("call_claude", { prompt });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      llmResult = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]);
+      parsed.combined.luckScore = parsed.combined.luckScore ?? 50;
+      parsed.combined.caution = parsed.combined.caution ?? parsed.combined.warning ?? "";
+      parsed.combined.luckyColorHex = parsed.combined.luckyColorHex ?? "#4A6FB5";
+      llmResult = parsed;
       _debugSource = "claude-cli";
     } else {
       throw new Error("Claude 응답 파싱 실패: " + result.substring(0, 200));

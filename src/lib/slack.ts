@@ -17,14 +17,14 @@ export async function sendToSlack(
             type: "header",
             text: {
               type: "plain_text",
-              text: `오늘의 묘 ✦ ${fortune.date}`,
+              text: `✦ myo · ${fortune.date}`,
             },
           },
           {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `*${fortune.combined.headline}*`,
+              text: `*"${fortune.combined.headline}"*\n묘 지수: ${fortune.combined.luckScore ?? "—"}/100`,
             },
           },
           {
@@ -39,7 +39,7 @@ export async function sendToSlack(
             elements: [
               {
                 type: "mrkdwn",
-                text: `🎨 ${fortune.combined.luckyColor} | 🔢 ${fortune.combined.luckyNumber} | 🍴 ${fortune.combined.luckyFood}`,
+                text: `color: ${fortune.combined.luckyColor} · number: ${fortune.combined.luckyNumber} · food: ${fortune.combined.luckyFood}`,
               },
             ],
           },
@@ -48,7 +48,7 @@ export async function sendToSlack(
             elements: [
               {
                 type: "mrkdwn",
-                text: `⚠️ ${fortune.combined.warning}`,
+                text: `⚠ ${fortune.combined.caution || fortune.combined.warning}`,
               },
             ],
           },

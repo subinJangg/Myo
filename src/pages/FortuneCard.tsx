@@ -1,13 +1,53 @@
 import { useEffect, useState, useRef } from "react";
 import { format } from "date-fns";
-import { ko } from "date-fns/locale";
-import { ArrowLeft, Copy, RefreshCw, Loader2, Palette, Hash, UtensilsCrossed, AlertTriangle, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2, Check } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
 import { ZODIAC_SIGNS } from "@/types";
-import { getTenGodEmoji, getTenGodFriendlyName, getDayMasterPersonality } from "@/lib/saju";
+import { getDayMasterPersonality } from "@/lib/saju";
+import { MoonPhaseBar } from "@/components/MoonPhaseBar";
+import { getMoonPhaseIndex } from "@/lib/calendar";
 
 type Tab = "saju" | "astrology" | "combined";
+
+function SparkleField() {
+  return (
+    <svg
+      className="absolute inset-0 pointer-events-none z-0"
+      viewBox="0 0 460 1200"
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="none"
+    >
+      <g fill="#D4AF37" opacity="0.5">
+        <circle cx="60" cy="90" r="1" />
+        <circle cx="410" cy="130" r="0.8" />
+        <circle cx="80" cy="260" r="1" />
+        <circle cx="420" cy="320" r="1.1" />
+        <circle cx="50" cy="480" r="0.9" />
+        <circle cx="410" cy="540" r="1" />
+        <circle cx="70" cy="700" r="0.9" />
+        <circle cx="400" cy="760" r="0.9" />
+        <polygon points="40,180 41,183 44,184 41,185 40,188 39,185 36,184 39,183" />
+        <polygon points="425,400 426,403 429,404 426,405 425,408 424,405 421,404 424,403" />
+        <polygon points="55,620 56,623 59,624 56,625 55,628 54,625 51,624 54,623" />
+      </g>
+    </svg>
+  );
+}
+
+function Divider() {
+  return (
+    <div className="flex items-center justify-center gap-2.5 my-5">
+      <span className="w-16 h-[0.3px] bg-primary/40" />
+      <svg className="text-primary/60" width="8" height="8" viewBox="0 0 32 32">
+        <polygon
+          points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7"
+          fill="currentColor"
+        />
+      </svg>
+      <span className="w-16 h-[0.3px] bg-primary/40" />
+    </div>
+  );
+}
 
 export function FortuneCard() {
   const {
@@ -21,7 +61,6 @@ export function FortuneCard() {
   const [activeTab, setActiveTab] = useState<Tab>("combined");
   const [loadingStep, setLoadingStep] = useState(0);
   const loadingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
-
   const [funMessage, setFunMessage] = useState("");
 
   const stepMessages: Record<number, string[]> = {
@@ -42,11 +81,8 @@ export function FortuneCard() {
     ],
     3: [
       "수정 구슬을 닦는 중...",
-      "우주에 당신의 운명을 묻는 중...",
-      "점성술사가 커피를 한 잔 마시는 중...",
       "운명의 실타래를 풀고 있어요...",
       "달의 기운을 받아오는 중...",
-      "점괘를 해석하는 중...",
     ],
   };
 
@@ -90,25 +126,20 @@ export function FortuneCard() {
   if (!profile) return null;
 
   const today = new Date();
-  const dateStr = format(today, "yyyy년 M월 d일 EEEE", { locale: ko });
+  const dateStr = format(today, "dd · MMM · yyyy · EEEE").toUpperCase();
   const zodiacInfo = ZODIAC_SIGNS[profile.zodiacSign];
+  const moonPhase = getMoonPhaseIndex(today);
 
   const [copied, setCopied] = useState(false);
-
   const handleCopy = async () => {
     if (!fortune) return;
-    const text = `☯ 묘 Myo - ${dateStr}
+    const text = `✦ myo · ${format(today, "yyyy.MM.dd")}
 
-🔮 ${fortune.combined.headline}
+"${fortune.combined.headline}"
 
 ${fortune.combined.body}
 
-🎨 럭키컬러: ${fortune.combined.luckyColor}
-🔢 럭키넘버: ${fortune.combined.luckyNumber}
-🍴 럭키푸드: ${fortune.combined.luckyFood}
-
-⚠️ ${fortune.combined.warning}`;
-
+⚠ ${fortune.combined.caution || fortune.combined.warning}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -120,271 +151,260 @@ ${fortune.combined.body}
     { key: "combined", label: "종합" },
   ];
 
+  const getActiveContent = () => {
+    if (!fortune) return null;
+    if (activeTab === "saju") return fortune.saju;
+    if (activeTab === "astrology") return fortune.astrology;
+    return fortune.combined;
+  };
+
+  const content = getActiveContent();
+
   return (
-    <div className="flex flex-col h-full animate-fade-in">
-      {/* Top gradient header */}
-      <div className="gradient-primary px-4 pt-3 pb-6 relative overflow-hidden">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 mb-1"
-          onClick={() => setView("home")}
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="absolute top-1 right-6 text-gold text-lg animate-float">✦</div>
-          <div className="absolute bottom-2 left-8 text-gold text-sm animate-float" style={{ animationDelay: "0.7s" }}>✧</div>
-        </div>
-        <div className="relative">
-          <p className="text-muted-foreground text-[11px] font-medium">{dateStr}</p>
+    <div className="flex flex-col h-full bg-background">
+      <div className="flex-1 overflow-y-auto">
+        <div className="ornate-frame relative min-h-full">
+          <SparkleField />
+          <div className="relative z-[1] px-[18px] py-[22px]">
 
-          {/* Badges */}
-          <div className="flex gap-2 mt-3">
-            <div className="flex-1 rounded-xl bg-white/5 backdrop-blur-sm p-2.5 text-center border border-white/5">
-              <div className="text-2xl font-bold text-gold">{profile.dayMasterHanja}</div>
-              <div className="text-[10px] text-foreground/80 mt-0.5 font-medium">
-                {profile.dayMaster}
-              </div>
-              <div className="text-[9px] text-muted-foreground mt-0.5 leading-snug">
-                {getDayMasterPersonality(profile.dayMaster.charAt(0))}
-              </div>
-            </div>
-            <div className="flex-1 rounded-xl bg-white/5 backdrop-blur-sm p-2.5 text-center border border-white/5">
-              <div className="text-2xl text-foreground">{zodiacInfo.symbol}</div>
-              <div className="text-[10px] text-foreground/80 mt-0.5 font-medium">
-                {zodiacInfo.ko}
-              </div>
-              <div className="text-[9px] text-muted-foreground mt-0.5">
-                나의 별자리
-              </div>
-            </div>
+          {/* Navbar */}
+          <div className="flex items-center justify-between mb-3">
+            <button
+              onClick={() => setView("home")}
+              className="text-muted-foreground text-sm hover:text-foreground transition-colors"
+            >
+              ←
+            </button>
+            <button
+              onClick={() => setView("settings")}
+              className="text-muted-foreground text-sm hover:text-foreground transition-colors"
+            >
+              ⚙
+            </button>
           </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 -mt-3 pb-2">
-        {isGenerating ? (
-          <div className="glass-strong rounded-2xl p-6 shadow-lg flex flex-col items-center gap-5">
-            {/* Crystal ball */}
-            <div className="relative w-20 h-20">
-              <div className="absolute inset-0 rounded-full bg-gold/10 animate-pulse" />
-              <div className="absolute inset-2 rounded-full bg-gold/15 shadow-inner flex items-center justify-center">
-                <span className="text-3xl animate-float">🔮</span>
-              </div>
-              <div className="absolute -inset-1 rounded-full border border-gold/15 animate-spin" style={{ animationDuration: "8s" }} />
-              <div className="absolute -inset-3 rounded-full border border-gold/8 animate-spin" style={{ animationDuration: "12s", animationDirection: "reverse" }} />
+          {/* Header */}
+          <div className="text-center mb-3">
+            <div className="flex items-center justify-center gap-3">
+              <span className="w-10 h-[0.5px] bg-primary" />
+              <span
+                className="text-[16px] text-primary/80 tracking-[1px]"
+                style={{ fontFamily: "'Spectral SC', serif" }}
+              >
+                myo · today
+              </span>
+              <span className="w-10 h-[0.5px] bg-primary" />
             </div>
-
-            {/* Steps */}
-            <div className="w-full space-y-2.5">
-              {loadingSteps.map((step, i) => (
-                <div
-                  key={step}
-                  className={`flex items-center gap-2.5 transition-all duration-500 ${
-                    i <= loadingStep ? "opacity-100" : "opacity-30"
-                  }`}
-                >
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${
-                    i < loadingStep
-                      ? "bg-green-500/20 text-green-500"
-                      : i === loadingStep
-                        ? "bg-gold/20 text-gold shadow-md"
-                        : "bg-muted text-muted-foreground"
-                  }`}>
-                    {i < loadingStep ? (
-                      <Check className="w-3 h-3" />
-                    ) : i === loadingStep ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <span className="text-[10px]">{i + 1}</span>
-                    )}
-                  </div>
-                  <span className={`text-xs ${
-                    i <= loadingStep ? "text-foreground" : "text-muted-foreground"
-                  }`}>
-                    {step}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Fun message */}
-            <p className="text-[11px] text-muted-foreground italic text-center animate-pulse">
-              {funMessage}
+            <p
+              className="text-[13px] text-subtext mt-3 tracking-[2px]"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              {dateStr}
             </p>
           </div>
-        ) : fortune ? (
-          <div className="space-y-3">
-            {/* Tab switcher */}
-            <div className="glass-strong rounded-2xl p-1 shadow-lg flex gap-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
-                    activeTab === tab.key
-                      ? "bg-gold/15 text-gold border border-gold/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
 
-            {/* Saju Tab */}
-            {activeTab === "saju" && (
-              <div className="space-y-3 animate-fade-in">
-                <div className="glass-strong rounded-2xl p-4 shadow-lg text-center">
-                  <p className="text-base font-bold leading-snug gradient-text">
-                    "{fortune.saju.headline}"
-                  </p>
-                </div>
-
-                <div className="glass rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center shadow-md border border-border shrink-0">
-                    <span className="text-lg">{getTenGodEmoji(fortune.saju.relation)}</span>
+          {isGenerating ? (
+            <div className="py-8">
+              <div className="flex flex-col items-center gap-5">
+                <div className="relative w-20 h-20">
+                  <div className="absolute inset-0 rounded-full border border-primary/20 animate-spin" style={{ animationDuration: "8s" }} />
+                  <div className="absolute inset-3 rounded-full border border-primary/30 animate-spin" style={{ animationDuration: "5s", animationDirection: "reverse" }} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <img src="/moon-cat.png" alt="" className="w-12 animate-float" />
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <span className="font-semibold text-foreground">
-                        {getTenGodFriendlyName(fortune.saju.relation)}
+                </div>
+                <div className="w-full space-y-2.5 max-w-[240px]">
+                  {loadingSteps.map((step, i) => (
+                    <div
+                      key={step}
+                      className={`flex items-center gap-2.5 transition-all duration-500 ${
+                        i <= loadingStep ? "opacity-100" : "opacity-30"
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${
+                        i < loadingStep
+                          ? "bg-primary/20 text-primary"
+                          : i === loadingStep
+                            ? "bg-primary/20 text-primary"
+                            : "text-muted-foreground"
+                      }`}>
+                        {i < loadingStep ? (
+                          <Check className="w-3 h-3" />
+                        ) : i === loadingStep ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <span className="text-[10px]">{i + 1}</span>
+                        )}
+                      </div>
+                      <span className={`text-xs font-serif ${
+                        i <= loadingStep ? "text-foreground" : "text-muted-foreground"
+                      }`}>
+                        {step}
                       </span>
-                      <span className="text-muted-foreground">의 날</span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-                      오늘 일진 {fortune.saju.todayDayPillar} · {fortune.saju.summary}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="glass-strong rounded-2xl p-4 shadow-sm">
-                  <p className="text-[13px] leading-[1.75] text-foreground/90">
-                    {fortune.saju.body}
-                  </p>
-                </div>
-
-                <div className="glass rounded-xl p-3">
-                  <p className="text-[12px] text-gold font-medium leading-relaxed">
-                    {fortune.saju.advice}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Astrology Tab */}
-            {activeTab === "astrology" && (
-              <div className="space-y-3 animate-fade-in">
-                <div className="glass-strong rounded-2xl p-4 shadow-lg text-center">
-                  <p className="text-base font-bold leading-snug gradient-text">
-                    "{fortune.astrology.headline}"
-                  </p>
-                </div>
-
-                <div className="glass rounded-xl p-3 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center shadow-md border border-border shrink-0">
-                    <span className="text-lg">{zodiacInfo.symbol}</span>
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <span>오늘의 트랜짓</span>
-                      <span className="font-semibold text-foreground">{zodiacInfo.ko}</span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-                      {fortune.astrology.dailyTransit}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="glass-strong rounded-2xl p-4 shadow-sm">
-                  <p className="text-[13px] leading-[1.75] text-foreground/90">
-                    {fortune.astrology.body}
-                  </p>
-                </div>
-
-                <div className="glass rounded-xl p-3">
-                  <p className="text-[12px] text-gold font-medium leading-relaxed">
-                    {fortune.astrology.advice}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Combined Tab */}
-            {activeTab === "combined" && (
-              <div className="space-y-3 animate-fade-in">
-                <div className="glass-strong rounded-2xl p-4 shadow-lg text-center">
-                  <p className="text-base font-bold leading-snug gradient-text">
-                    "{fortune.combined.headline}"
-                  </p>
-                </div>
-
-                <div className="glass-strong rounded-2xl p-4 shadow-sm">
-                  <p className="text-[13px] leading-[1.75] text-foreground/90">
-                    {fortune.combined.body}
-                  </p>
-                </div>
-
-                {/* Lucky items */}
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { icon: Palette, label: "럭키 컬러", value: fortune.combined.luckyColor },
-                    { icon: Hash, label: "럭키 넘버", value: fortune.combined.luckyNumber },
-                    { icon: UtensilsCrossed, label: "럭키 푸드", value: fortune.combined.luckyFood },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-xl p-2.5 text-center bg-card border border-border/50">
-                      <item.icon className="w-4 h-4 mx-auto text-gold/60 mb-1" />
-                      <div className="text-[10px] text-muted-foreground">{item.label}</div>
-                      <div className="text-xs font-semibold mt-0.5 truncate">{item.value}</div>
                     </div>
                   ))}
                 </div>
+                <p className="text-[11px] text-subtext/60 italic text-center animate-pulse font-serif">
+                  {funMessage}
+                </p>
+              </div>
+            </div>
+          ) : fortune ? (
+            <>
+              {/* Moon Phase Bar */}
+              <div className="mb-5">
+                <MoonPhaseBar activeIndex={moonPhase} />
+              </div>
 
-                {/* Warning */}
-                <div className="flex items-start gap-2 rounded-xl bg-red-500/10 border border-red-500/15 p-3">
-                  <AlertTriangle className="w-3.5 h-3.5 text-red-400 mt-0.5 shrink-0" />
-                  <p className="text-[11px] text-red-300 leading-relaxed">
-                    {fortune.combined.warning}
+              {/* Profile cards */}
+              <div className="grid grid-cols-2 gap-2.5 mb-2">
+                <div className="ornate-mini bg-card/50 border border-primary/30 rounded-md p-3.5 text-center">
+                  <p className="text-[10px] text-muted-foreground tracking-[2px] mb-2" style={{ fontFamily: "'Cinzel', serif" }}>
+                    my day
+                  </p>
+                  <p className="text-[26px] text-primary/90 font-serif leading-none">
+                    {profile.dayMasterHanja}
+                  </p>
+                  <p className="text-[11px] text-subtext mt-2">
+                    {getDayMasterPersonality(profile.dayMaster.charAt(0))}
                   </p>
                 </div>
+                <div className="ornate-mini bg-card/50 border border-primary/30 rounded-md p-3.5 text-center">
+                  <p className="text-[10px] text-muted-foreground tracking-[2px] mb-2" style={{ fontFamily: "'Cinzel', serif" }}>
+                    my star
+                  </p>
+                  <p className="text-[26px] text-primary/90 leading-none" style={{ fontFamily: "'Cinzel', serif" }}>
+                    {zodiacInfo.symbol}
+                  </p>
+                  <p className="text-[11px] text-subtext mt-2">{zodiacInfo.ko}</p>
+                </div>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="glass-strong rounded-2xl p-8 shadow-lg flex flex-col items-center justify-center gap-3">
-            <p className="text-sm text-muted-foreground">오늘의 묘가 아직 도착하지 않았어요</p>
-            <Button size="sm" variant="outline" className="rounded-lg" onClick={() => fetchFortune(true)}>
-              <RefreshCw className="w-3 h-3 mr-1.5" /> 다시 시도
-            </Button>
-          </div>
-        )}
-      </div>
 
-      {/* Bottom bar */}
-      <div className="flex items-center gap-1.5 px-3 py-2.5 border-t border-border/50 bg-card/50 backdrop-blur-sm">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-1 h-9 rounded-lg text-xs gap-1.5 hover:bg-secondary"
-          onClick={handleCopy}
-          disabled={!fortune}
-        >
-          <Copy className="w-3.5 h-3.5" />
-          {copied ? "복사됨!" : "복사"}
-        </Button>
-        <div className="w-px h-4 bg-border" />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-1 h-9 rounded-lg text-xs gap-1.5 hover:bg-secondary"
-          onClick={() => fetchFortune(true)}
-          disabled={isGenerating}
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? "animate-spin" : ""}`} />
-          새로고침
-        </Button>
+              <Divider />
+
+              {/* Tabs */}
+              <div className="flex justify-center gap-5 mb-1">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`font-serif text-[13px] py-1.5 px-1 tracking-[1px] transition-all ${
+                      activeTab === tab.key
+                        ? "text-primary border-b-[1.5px] border-primary"
+                        : "text-muted-foreground hover:text-subtext"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Headline */}
+              {content && (
+                <div className="text-center my-5">
+                  <p className="text-[22px] font-serif font-medium text-foreground leading-[1.5] tracking-[-0.5px]">
+                    <span className="text-primary" style={{ fontFamily: "'Cinzel', serif" }}>"</span>
+                    {content.headline}
+                    <span className="text-primary" style={{ fontFamily: "'Cinzel', serif" }}>"</span>
+                  </p>
+                </div>
+              )}
+
+              {/* Body text */}
+              {content && (
+                <div className="flex gap-3.5 mb-5">
+                  <span className="w-[2px] bg-primary/60 rounded shrink-0" />
+                  <p className="text-[13px] text-foreground/90 leading-[1.8] font-serif">
+                    {content.body}
+                  </p>
+                </div>
+              )}
+
+              {/* Warning / Caution */}
+              {fortune && (activeTab === "combined" ? fortune.combined.caution || fortune.combined.warning : (content as any)?.advice) && (
+                <div className="ornate-mini bg-card/50 border border-primary/50 rounded-md p-3.5 mb-5">
+                  <p className="text-[11px] text-primary/70 tracking-[2px] mb-1.5" style={{ fontFamily: "'Cinzel', serif" }}>
+                    {activeTab === "combined" ? "⚠ caution · 주의할 묘" : "✦ advice"}
+                  </p>
+                  <p className="text-[12px] text-foreground leading-[1.6] font-serif">
+                    {activeTab === "combined"
+                      ? (fortune.combined.caution || fortune.combined.warning)
+                      : (content as any)?.advice}
+                  </p>
+                </div>
+              )}
+
+              {/* Lucky items (combined tab only) */}
+              {activeTab === "combined" && fortune && (
+                <div className="grid grid-cols-3 gap-2 mb-5">
+                  <div className="bg-card/40 border border-primary/30 rounded-md p-3 text-center">
+                    <div className="h-8 flex items-center justify-center mb-1">
+                      <div
+                        className="w-6 h-6 rounded-full border border-primary/40"
+                        style={{ background: fortune.combined.luckyColorHex || "#4A6FB5", boxShadow: `0 0 0 2px rgba(212,175,55,0.15)` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground tracking-[1.5px]" style={{ fontFamily: "'Cinzel', serif" }}>
+                      color
+                    </p>
+                    <p className="text-[11px] text-foreground mt-1 font-serif">{fortune.combined.luckyColor}</p>
+                  </div>
+                  <div className="bg-card/40 border border-primary/30 rounded-md p-3 text-center">
+                    <div className="h-8 flex items-center justify-center mb-1">
+                      <span className="text-[28px] text-primary/80" style={{ fontFamily: "'Cinzel', serif" }}>
+                        {fortune.combined.luckyNumber}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground tracking-[1.5px]" style={{ fontFamily: "'Cinzel', serif" }}>
+                      number
+                    </p>
+                    <p className="text-[11px] text-foreground mt-1 font-serif">럭키 넘버</p>
+                  </div>
+                  <div className="bg-card/40 border border-primary/30 rounded-md p-3 text-center">
+                    <div className="h-8 flex items-center justify-center mb-1">
+                      <span className="text-xl">🍴</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground tracking-[1.5px]" style={{ fontFamily: "'Cinzel', serif" }}>
+                      food
+                    </p>
+                    <p className="text-[11px] text-foreground mt-1 font-serif">{fortune.combined.luckyFood}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-2.5">
+                <button
+                  onClick={handleCopy}
+                  className="flex-1 py-3 rounded-md border border-primary/50 text-subtext text-[13px] font-serif tracking-[1px] hover:border-primary hover:text-foreground transition-all"
+                >
+                  {copied ? "복사됨!" : "복사"}
+                </button>
+                <button
+                  onClick={() => fetchFortune(true)}
+                  disabled={isGenerating}
+                  className="flex-1 py-3 rounded-md bg-primary text-background text-[13px] font-serif font-medium tracking-[1px] hover:bg-primary/90 transition-all disabled:opacity-50"
+                >
+                  다시 묘 풀기
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-[14px] text-subtext font-serif mb-4">
+                오늘의 묘가 아직 도착하지 않았어요
+              </p>
+              <button
+                onClick={() => fetchFortune(true)}
+                className="px-6 py-2.5 rounded-md border border-primary/50 text-primary text-[13px] font-serif tracking-[1px] hover:bg-primary/5 transition-all"
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -4,117 +4,122 @@
 
 @layer base {
   :root {
-    --background: 215 35% 7%;
-    --foreground: 38 30% 90%;
-    --card: 213 30% 11%;
-    --card-foreground: 38 30% 90%;
-    --primary: 38 36% 50%;
-    --primary-foreground: 215 35% 7%;
-    --secondary: 213 28% 15%;
-    --secondary-foreground: 38 30% 90%;
-    --muted: 213 28% 15%;
-    --muted-foreground: 213 10% 50%;
-    --accent: 213 28% 15%;
-    --accent-foreground: 38 36% 65%;
-    --destructive: 0 70% 45%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 213 20% 18%;
-    --input: 213 20% 18%;
-    --ring: 38 36% 50%;
     --radius: 0.75rem;
-    --gold: 38 40% 54%;
-    --gold-light: 40 46% 60%;
   }
 
-  .dark {
-    --background: 215 35% 7%;
-    --foreground: 38 30% 90%;
-    --card: 213 30% 11%;
-    --card-foreground: 38 30% 90%;
-    --primary: 38 36% 50%;
-    --primary-foreground: 215 35% 7%;
-    --secondary: 213 28% 15%;
-    --secondary-foreground: 38 30% 90%;
-    --muted: 213 28% 15%;
-    --muted-foreground: 213 10% 50%;
-    --accent: 213 28% 15%;
-    --accent-foreground: 38 36% 65%;
-    --destructive: 0 70% 45%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 213 20% 18%;
-    --input: 213 20% 18%;
-    --ring: 38 36% 50%;
-    --gold: 38 40% 54%;
-    --gold-light: 40 46% 60%;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
-      "Pretendard", system-ui, sans-serif;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont,
+      "Apple SD Gothic Neo", system-ui, sans-serif;
     overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
   }
 }
 
-@layer utilities {
+@layer components {
+  .ornate-frame {
+    position: relative;
+  }
+  .ornate-frame::before {
+    content: "";
+    position: absolute;
+    inset: 16px;
+    border: 0.5px solid #D4AF37;
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .ornate-frame::after {
+    content: "";
+    position: absolute;
+    inset: 22px;
+    border: 0.3px dashed rgba(212, 175, 55, 0.45);
+    border-radius: 5px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .ornate-mini {
+    position: relative;
+  }
+  .ornate-mini::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 0.3px dashed rgba(212, 175, 55, 0.2);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
   .glass {
-    background: hsl(var(--card) / 0.7);
+    background: rgba(26, 34, 51, 0.7);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid hsl(var(--border) / 0.5);
-  }
-  .glass-strong {
-    background: hsl(var(--card) / 0.85);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid hsl(var(--border) / 0.6);
-  }
-  .gradient-primary {
-    background: linear-gradient(135deg, hsl(213 30% 14%), hsl(213 28% 18%));
-  }
-  .gradient-gold {
-    background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)));
+    border: 1px solid rgba(43, 55, 70, 0.5);
   }
   .gradient-text {
-    background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-light)));
+    background: linear-gradient(135deg, #D4AF37, #F6EEDB);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .shimmer {
-    background: linear-gradient(
-      110deg,
-      hsl(var(--muted)) 0%,
-      hsl(var(--muted) / 0.5) 40%,
-      hsl(var(--muted)) 60%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s ease-in-out infinite;
-  }
-  @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
+}
+
+@layer utilities {
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-4px); }
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
   }
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
   @keyframes fade-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   .animate-fade-in {
     animation: fade-in 0.4s ease-out;
+  }
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  .animate-twinkle {
+    animation: twinkle 3s ease-in-out infinite;
+  }
+
+  .perspective-800 {
+    perspective: 800px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
   }
 }
 
@@ -125,9 +130,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.2);
+  background: rgba(110, 119, 131, 0.2);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.4);
+  background: rgba(110, 119, 131, 0.4);
 }
