@@ -36,8 +36,8 @@ export type BirthLocation = {
 
 export type UserProfile = {
   birthDate: string;
-  birthTime: string;
-  birthLocation: BirthLocation;
+  birthTime?: string;
+  birthLocation?: BirthLocation;
   dayMaster: string;
   dayMasterHanja: string;
   zodiacSign: ZodiacSign;
@@ -45,16 +45,10 @@ export type UserProfile = {
 };
 
 export type UserPreferences = {
-  notificationTime: string;
-  notificationEnabled: boolean;
   jobRole: JobRole;
   tone: Tone;
   autoStart: boolean;
   theme: "auto" | "light" | "dark";
-  slack: {
-    webhookUrl: string;
-    autoShareOnNotification: boolean;
-  };
 };
 
 export type DailyFortune = {
@@ -153,14 +147,8 @@ export const BIRTH_LOCATIONS: BirthLocation[] = [
 ];
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
-  notificationTime: "08:00",
-  notificationEnabled: true,
   jobRole: "general",
   tone: "warm",
   autoStart: false,
   theme: "auto",
-  slack: {
-    webhookUrl: "",
-    autoShareOnNotification: false,
-  },
 };

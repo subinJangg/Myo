@@ -1,5 +1,7 @@
 import type { DailyFortune, JobRole, Tone, UserProfile } from "@/types";
-import { getDayPillar, getTenGodRelation, getTenGodDescription } from "./saju";
+import { getFullChart, getTodayPillar, getTenGodRelation, getTenGodDescription, getDayMasterPersonality } from "./saju";
+import { calcDailyScore } from "./scoring";
+import type { DailyScoreResult } from "./scoring";
 import { invoke } from "@tauri-apps/api/core";
 
 export function buildStyleGuide(jobRole: JobRole, tone: Tone): string {
@@ -22,22 +24,37 @@ export function buildStyleGuide(jobRole: JobRole, tone: Tone): string {
 
 function buildPrompt(
   profile: UserProfile,
-  todayPillar: ReturnType<typeof getDayPillar>,
+  scoreResult: DailyScoreResult,
   tenGod: string,
   jobRole: JobRole,
   tone: Tone,
 ): string {
-  return `당신은 한국의 사주명리학과 서양 점성술에 모두 능통한 운세 해석가입니다.
-다음 정보를 바탕으로 오늘의 운세를 작성해주세요.
+  const tierDesc: Record<string, string> = {
+    "大吉": "매우 좋은 날 — 밝고 긍정적인 톤",
+    "吉": "좋은 날 — 자연스럽게 긍정적",
+    "中": "평범한 날 — 좋지도 나쁘지도 않은 균형",
+    "小凶": "조심할 날 — 약간의 주의 필요",
+    "凶": "힘든 날 — 위로와 조심 강조",
+  };
+
+  return `당신은 "묘(Myo)"라는 운세 앱의 전문 해석가입니다.
+"묘하다", "묘한" 같은 시그니처 표현을 자연스럽게 1~2회 사용해주세요.
+단정적이지 않고 여운을 남기는 표현을 사용하세요. "~할 수 있어요", "~한 하루가 될지도"
 
 스타일 가이드: ${buildStyleGuide(jobRole, tone)}
 
-사용자 일간: ${profile.dayMaster} (${profile.dayMasterHanja})
-사용자 별자리: ${profile.zodiacSign}
-오늘의 일진: ${todayPillar.fullName} (${todayPillar.stemHanja})
-십신 관계: ${tenGod}
+[사주 정보 — 코드가 이미 계산한 결과]
+- 일간: ${profile.dayMaster} (${profile.dayMasterHanja}) — ${getDayMasterPersonality(profile.dayMaster.charAt(0))}
+- 신강/신약: ${scoreResult.level}
+- 용신: ${scoreResult.yongsin} — 필요한 오행
+- 십신 관계: ${tenGod}
+- 오늘 묘점: ${scoreResult.score}점 (${scoreResult.tier})
+- 별자리: ${profile.zodiacSign}
 
-사주 운세와 별자리 운세를 각각 따로 해석하고, 마지막에 둘을 종합한 통합 운세도 작성해주세요.
+[해석 요청]
+위 사주 정보를 바탕으로 오늘의 묘를 해석해주세요.
+점수는 이미 정해졌으니 새로 매기지 마세요.
+"${scoreResult.score}점 ${scoreResult.tier}" 의 톤에 맞게 (${tierDesc[scoreResult.tier]}) 해석해주세요.
 
 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 순수 JSON만:
 {
@@ -54,8 +71,7 @@ function buildPrompt(
   "combined": {
     "headline": "사주+별자리 종합 한 줄 요약 (15자 이내)",
     "body": "두 관점을 종합한 본문 3-5줄",
-    "luckScore": 0~100 사이 정수 (오늘의 묘 지수),
-    "caution": "주의할 묘 한 줄 (오늘 조심해야 할 구체적 행동)",
+    "caution": "주의할 묘 한 줄 (묘하게를 자연스럽게 포함)",
     "luckyColor": "색상 한글 이름",
     "luckyColorHex": "#RRGGBB 형식 HEX 컬러 코드",
     "luckyNumber": 1~9 사이 정수,
@@ -65,18 +81,12 @@ function buildPrompt(
 }`;
 }
 
-type FallbackResult = {
-  saju: Pick<DailyFortune["saju"], "headline" | "body" | "advice">;
-  astrology: Pick<DailyFortune["astrology"], "headline" | "body" | "advice">;
-  combined: DailyFortune["combined"];
-};
-
 function generateFallbackFortune(
   profile: UserProfile,
-  todayPillar: ReturnType<typeof getDayPillar>,
+  scoreResult: DailyScoreResult,
   tenGod: string,
   tenGodDesc: string,
-): FallbackResult {
+) {
   const colors = [
     { name: "코발트 블루", hex: "#4A6FB5" },
     { name: "에메랄드", hex: "#50C878" },
@@ -94,7 +104,7 @@ function generateFallbackFortune(
   return {
     saju: {
       headline: `${tenGod}의 기운이 감도는 하루`,
-      body: `오늘 ${profile.dayMaster}(${profile.dayMasterHanja}) 일간인 당신에게 ${todayPillar.fullName}(${todayPillar.stemHanja})의 기운이 찾아옵니다. ${tenGodDesc}`,
+      body: `오늘 ${profile.dayMaster}(${profile.dayMasterHanja}) 일간인 당신에게 묘한 기운이 찾아옵니다. ${tenGodDesc}`,
       advice: "오행의 흐름에 따라 차분하게 하루를 보내세요.",
     },
     astrology: {
@@ -103,9 +113,9 @@ function generateFallbackFortune(
       advice: "별자리의 흐름을 믿고 자신감을 가져보세요.",
     },
     combined: {
-      headline: `${tenGod}의 기운이 감도는 하루`,
-      body: `오늘 ${profile.dayMaster}(${profile.dayMasterHanja}) 일간인 당신에게 ${todayPillar.fullName}(${todayPillar.stemHanja})의 기운이 찾아옵니다. ${tenGodDesc} 별자리 ${profile.zodiacSign}의 영향도 더해져, 오늘은 특별한 하루가 될 수 있습니다.`,
-      luckScore: 50 + (seed % 40),
+      headline: `${tenGod}의 묘한 기운이 감도는 하루`,
+      body: `오늘 ${profile.dayMaster}(${profile.dayMasterHanja}) 일간인 당신에게 묘한 기운이 찾아옵니다. ${tenGodDesc} 별자리 ${profile.zodiacSign}의 영향도 더해져, 묘하게 특별한 하루가 될지도.`,
+      luckScore: scoreResult.score,
       caution: "급한 결정은 피하고, 한 번 더 생각해보세요.",
       luckyColor: luckyColor.name,
       luckyColorHex: luckyColor.hex,
@@ -123,11 +133,12 @@ export async function generateDailyFortune(
 ): Promise<DailyFortune> {
   const today = new Date();
   const dateStr = today.toISOString().split("T")[0];
-  const todayPillar = getDayPillar(today);
-  const tenGod = getTenGodRelation(
-    profile.dayMaster.charAt(0),
-    todayPillar.stem,
-  );
+
+  const chart = getFullChart(profile.birthDate, profile.birthTime);
+  const todayPillar = getTodayPillar();
+  const scoreResult = calcDailyScore(chart, todayPillar, dateStr);
+
+  const tenGod = getTenGodRelation(chart.day.stem, todayPillar.stem);
   const tenGodDesc = getTenGodDescription(tenGod);
 
   let llmResult: {
@@ -139,12 +150,12 @@ export async function generateDailyFortune(
   let _debugError = "";
 
   try {
-    const prompt = buildPrompt(profile, todayPillar, tenGod, jobRole, tone);
+    const prompt = buildPrompt(profile, scoreResult, tenGod, jobRole, tone);
     const result = await invoke<string>("call_claude", { prompt });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
-      parsed.combined.luckScore = parsed.combined.luckScore ?? 50;
+      parsed.combined.luckScore = scoreResult.score;
       parsed.combined.caution = parsed.combined.caution ?? parsed.combined.warning ?? "";
       parsed.combined.luckyColorHex = parsed.combined.luckyColorHex ?? "#4A6FB5";
       llmResult = parsed;
@@ -153,10 +164,10 @@ export async function generateDailyFortune(
       throw new Error("Claude 응답 파싱 실패: " + result.substring(0, 200));
     }
   } catch (e) {
-    console.error("Claude CLI 호출 실패:", e);
+    console.error("묘하게 풀이가 막혔어요:", e);
     _debugError = String(e);
     _debugSource = "fallback";
-    llmResult = generateFallbackFortune(profile, todayPillar, tenGod, tenGodDesc);
+    llmResult = generateFallbackFortune(profile, scoreResult, tenGod, tenGodDesc);
   }
 
   return {
@@ -165,7 +176,7 @@ export async function generateDailyFortune(
     _debugSource,
     _debugError,
     saju: {
-      todayDayPillar: todayPillar.fullName,
+      todayDayPillar: `${todayPillar.stemHanja}${todayPillar.branchHanja}`,
       todayDayPillarHanja: todayPillar.stemHanja,
       relation: tenGod,
       summary: tenGodDesc,

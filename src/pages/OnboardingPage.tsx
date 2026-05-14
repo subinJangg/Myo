@@ -14,11 +14,11 @@ import { Sparkles, Briefcase, Code2, Palette, BarChart3, Flame, Zap, Leaf, Heart
 
 const schema = z.object({
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD 형식으로 입력"),
-  birthTime: z.string().regex(/^\d{2}:\d{2}$/, "HH:MM 형식으로 입력"),
+  birthTime: z.string().optional(),
+  birthTimeUnknown: z.boolean(),
   birthLocationName: z.string(),
   jobRole: z.enum(["general", "developer", "designer", "pm"]),
   tone: z.enum(["warm", "savage", "hype", "calm"]),
-  notificationTime: z.string().regex(/^\d{2}:\d{2}$/),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -44,21 +44,23 @@ export function OnboardingPage() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       birthDate: "",
       birthTime: "12:00",
+      birthTimeUnknown: false,
       birthLocationName: "서울",
       jobRole: "general",
       tone: "warm",
-      notificationTime: "08:00",
     },
   });
 
   const selectedJobRole = watch("jobRole");
   const selectedTone = watch("tone");
+  const birthTimeUnknown = watch("birthTimeUnknown");
 
   const onSubmit = async (data: FormData) => {
     const location = BIRTH_LOCATIONS.find(
@@ -71,7 +73,7 @@ export function OnboardingPage() {
 
     const profile: UserProfile = {
       birthDate: data.birthDate,
-      birthTime: data.birthTime,
+      birthTime: data.birthTimeUnknown ? undefined : data.birthTime,
       birthLocation: location,
       dayMaster: dayMaster.fullName,
       dayMasterHanja: dayMaster.stemHanja,
@@ -83,7 +85,6 @@ export function OnboardingPage() {
     await updatePreferences({
       jobRole: data.jobRole as JobRole,
       tone: data.tone as Tone,
-      notificationTime: data.notificationTime,
     });
   };
 
@@ -100,7 +101,7 @@ export function OnboardingPage() {
           <Sparkles className="w-8 h-8 text-gold mx-auto mb-2" />
           <h1 className="text-xl font-bold text-foreground tracking-tight">묘 <span className="text-gold text-base font-normal">Myo</span></h1>
           <p className="text-muted-foreground text-xs mt-1">
-            묘하게 잘 맞는 하루
+            묘에 오신 걸 환영해요
           </p>
         </div>
       </div>
@@ -127,7 +128,26 @@ export function OnboardingPage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="birthTime" className="text-xs">출생 시간</Label>
-              <Input id="birthTime" type="time" {...register("birthTime")} />
+              {birthTimeUnknown ? (
+                <button
+                  type="button"
+                  className="w-full h-9 rounded-md border border-border bg-muted/50 text-xs text-muted-foreground flex items-center justify-center"
+                  onClick={() => { setValue("birthTimeUnknown", false); setValue("birthTime", "12:00"); }}
+                >
+                  모름
+                </button>
+              ) : (
+                <div className="flex gap-1">
+                  <Input id="birthTime" type="time" {...register("birthTime")} className="flex-1" />
+                  <button
+                    type="button"
+                    className="px-2 rounded-md border border-border text-[10px] text-muted-foreground hover:bg-muted/50"
+                    onClick={() => { setValue("birthTimeUnknown", true); setValue("birthTime", ""); }}
+                  >
+                    모름
+                  </button>
+                </div>
+              )}
             </div>
             <div className="space-y-1">
               <Label htmlFor="birthLocationName" className="text-xs">출생 도시</Label>
@@ -223,16 +243,6 @@ export function OnboardingPage() {
               );
             })}
           </div>
-        </div>
-
-        {/* Notification time */}
-        <div className="glass-strong rounded-2xl p-4 space-y-1">
-          <Label htmlFor="notificationTime" className="text-xs">아침 알림 시간</Label>
-          <Input
-            id="notificationTime"
-            type="time"
-            {...register("notificationTime")}
-          />
         </div>
 
         <Button

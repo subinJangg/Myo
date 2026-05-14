@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useAppStore } from "@/stores/appStore";
 import { OrnateButton } from "@/components/OrnateButton";
 
@@ -40,10 +41,8 @@ function StarCircle() {
 
   return (
     <svg
-      className="absolute inset-0 pointer-events-none"
+      className="absolute inset-0 w-full h-full pointer-events-none"
       viewBox="0 0 200 200"
-      width="140"
-      height="140"
     >
       <g fill="#C8A96B" opacity="0.3">
         {dots.map((d, i) => (
@@ -83,8 +82,8 @@ export function HomePage() {
   const dateStr = format(today, "yyyy.MM.dd EEE").toUpperCase();
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <div className="flex-1 overflow-hidden">
+    <div className="flex flex-col h-full bg-background items-center justify-center">
+      <div className="w-full max-h-[620px] h-full overflow-hidden">
         <div className="ornate-frame relative h-full">
           <SparkleField />
           <div className="relative z-[1] px-[30px] py-[30px] flex flex-col h-full">
@@ -111,38 +110,86 @@ export function HomePage() {
             </p>
           </div>
 
-          {/* Hero illustration */}
-          <div className="flex justify-center items-center py-4">
-            <div className="relative w-[140px] h-[140px] flex items-center justify-center">
-              <StarCircle />
-              <img
-                src="/moon-cat.png"
-                alt="묘"
-                className="relative z-[1] w-[105px] pointer-events-none select-none animate-float"
-                draggable={false}
-              />
-            </div>
-          </div>
+          {fortune ? (
+            <>
+              {/* Fortune loaded — show summary */}
+              <div className="flex justify-center items-center py-2">
+                <div className="relative w-[100px] h-[100px] flex items-center justify-center">
+                  <StarCircle />
+                  <img
+                    src="/moon-cat.png"
+                    alt="묘"
+                    className="relative z-[1] w-[75px] pointer-events-none select-none animate-float"
+                    draggable={false}
+                  />
+                </div>
+              </div>
 
-          {/* TODAY'S READING */}
-          <div className="text-center mb-3">
-            <p className="text-[10px] text-primary-light tracking-[4px] font-serif uppercase mb-1.5">
-              TODAY'S READING
-            </p>
-            <p className="text-[16px] text-foreground font-serif font-medium tracking-[1px]">
-              오늘의 묘 보기
-            </p>
-            <p className="text-[11px] text-subtext mt-1 tracking-[1px]">
-              사주 · 별자리 · 종합 풀이를 펼치다
-            </p>
-          </div>
+              {/* Today's Myo headline */}
+              <div className="text-center mb-3">
+                <p className="text-[10px] text-primary tracking-[3px] uppercase mb-2" style={{ fontFamily: "'Cinzel', serif" }}>
+                  오늘의 묘
+                </p>
+                <p
+                  className="text-[16px] gradient-text font-medium leading-[1.6] tracking-[-0.3px] mb-2"
+                  style={{ fontFamily: "'Noto Serif KR', serif" }}
+                >
+                  &ldquo;{fortune.combined.headline}&rdquo;
+                </p>
+                <p className="text-[11px] text-subtext/70 leading-[1.8] px-2 line-clamp-2">
+                  {fortune.combined.body}
+                </p>
+              </div>
 
-          {/* CTA */}
-          <div className="text-center mb-4">
-            <OrnateButton onClick={() => setView("card")}>
-              보러가기
-            </OrnateButton>
-          </div>
+              {/* Score + Detail */}
+              <div className="flex items-center justify-center gap-4 mb-3">
+                <div className="flex items-end gap-0.5">
+                  <span className="text-[28px] gradient-text font-medium leading-none" style={{ fontFamily: "'Cinzel', serif" }}>
+                    {fortune.combined.luckScore}
+                  </span>
+                  <span className="text-[11px] text-primary/40 mb-0.5" style={{ fontFamily: "'Cinzel', serif" }}>
+                    /100
+                  </span>
+                </div>
+                <OrnateButton onClick={() => setView("card")}>
+                  자세히 보기
+                </OrnateButton>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* No fortune yet — show CTA */}
+              <div className="flex justify-center items-center py-4">
+                <div className="relative w-[140px] h-[140px] flex items-center justify-center">
+                  <StarCircle />
+                  <img
+                    src="/moon-cat.png"
+                    alt="묘"
+                    className="relative z-[1] w-[105px] pointer-events-none select-none animate-float"
+                    draggable={false}
+                  />
+                </div>
+              </div>
+
+              <div className="text-center mb-3">
+                <p className="text-[10px] text-primary-light tracking-[4px] font-serif uppercase mb-1.5">
+                  TODAY'S READING
+                </p>
+                <p className="text-[16px] text-foreground font-serif font-medium tracking-[1px]">
+                  오늘의 묘 보기
+                </p>
+                <p className="text-[11px] text-subtext mt-1 tracking-[1px]">
+                  사주 · 별자리 · 종합 풀이를 펼치다
+                </p>
+              </div>
+
+              <div className="text-center mb-4">
+                <OrnateButton onClick={() => setView("card")}>
+                  오늘의 묘 풀기
+                </OrnateButton>
+              </div>
+            </>
+          )}
 
           {/* Feature Grid */}
           <div className="grid grid-cols-3 gap-2 mb-2">
@@ -166,7 +213,7 @@ export function HomePage() {
                   stroke="none"
                 />
               </svg>
-              <p className="text-[12px] text-foreground font-medium">타로</p>
+              <p className="text-[12px] text-foreground font-medium">묘한 카드</p>
               <p className="text-[9px] text-muted-foreground mt-0.5 tracking-[1px] font-serif uppercase">
                 tarot
               </p>
@@ -184,7 +231,7 @@ export function HomePage() {
                 <circle cx="11" cy="16" r="6" />
                 <circle cx="21" cy="16" r="6" />
               </svg>
-              <p className="text-[12px] text-foreground">궁합</p>
+              <p className="text-[12px] text-foreground">묘연</p>
               <p className="text-[9px] text-muted-foreground mt-0.5 tracking-[1px] font-serif uppercase">
                 compatibility
               </p>
@@ -205,7 +252,7 @@ export function HomePage() {
                   stroke="none"
                 />
               </svg>
-              <p className="text-[12px] text-foreground">사주</p>
+              <p className="text-[12px] text-foreground">묘리</p>
               <p className="text-[9px] text-muted-foreground mt-0.5 tracking-[1px] font-serif uppercase">
                 full saju
               </p>
@@ -239,6 +286,16 @@ export function HomePage() {
               </svg>
               settings
             </button>
+            <span className="w-[0.5px] h-3 bg-primary/30" />
+            <button
+              onClick={() => getCurrentWindow().close()}
+              className="text-primary-light text-[10px] tracking-[2px] uppercase inline-flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+              quit
+            </button>
           </div>
 
           </div>
@@ -250,7 +307,7 @@ export function HomePage() {
           <div className="bg-[#1A2233]/95 border border-primary/40 rounded-lg px-7 py-4 text-center shadow-[0_0_20px_rgba(0,0,0,0.4)] backdrop-blur-sm animate-fade-in-out">
             <p className="text-[10px] text-primary/70 tracking-[3px] uppercase mb-1.5" style={{ fontFamily: "'Cinzel', serif" }}>coming soon</p>
             <p className="text-[14px] text-foreground font-serif tracking-[1px]">묘한 기능을 준비 중이에요</p>
-            <p className="text-[11px] text-subtext/70 mt-1.5 tracking-[1px]">오픈을 기다려주세요!</p>
+            <p className="text-[11px] text-subtext/70 mt-1.5 tracking-[1px]">묘하게 곧 찾아올 거예요</p>
           </div>
         </div>
       )}

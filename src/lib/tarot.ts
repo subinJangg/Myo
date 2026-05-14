@@ -180,20 +180,22 @@ export async function interpretSingleCard(
   jobRole: JobRole,
   tone: Tone,
 ): Promise<string> {
-  const prompt = `당신은 타로 카드 전문 해석가입니다.
-오늘의 타로 카드 1장을 해석해주세요.
+  const prompt = `당신은 "묘(Myo)" 운세 앱의 타로 카드 전문 해석가입니다.
+"묘하다", "묘한" 같은 시그니처 표현을 자연스럽게 1~2회 사용해주세요.
+단정적이지 않고 여운을 남기는 표현을 사용하세요.
+오늘의 묘한 카드 1장을 해석해주세요.
 
 스타일 가이드: ${buildStyleGuide(jobRole, tone)}
 
 오늘의 카드: ${card.nameKo} (${card.name}) - ${card.keywords}
 
-이 카드가 오늘 하루에 대해 어떤 메시지를 전하는지 해석해주세요.
+이 카드가 오늘 하루에 대해 어떤 묘한 메시지를 전하는지 해석해주세요.
 
 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 순수 JSON만:
 {
   "headline": "카드의 핵심 메시지 한 줄 (15자 이내)",
   "interpretation": "카드 해석 3-5줄",
-  "advice": "오늘의 조언 한 줄"
+  "advice": "오늘의 묘한 조언 한 줄"
 }`;
 
   try {

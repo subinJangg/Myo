@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Terminal, Bell, Palette, MessageSquare, User, RotateCcw } from "lucide-react";
+import { ArrowLeft, Terminal, Palette, User, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,18 +10,16 @@ import { useAppStore } from "@/stores/appStore";
 import { BIRTH_LOCATIONS } from "@/types";
 import { getZodiacSign } from "@/lib/zodiac";
 import { getBirthDayMaster } from "@/lib/saju";
-import { sendToSlack } from "@/lib/slack";
+
 import type { UserProfile } from "@/types";
 
 const settingsSchema = z.object({
-  notificationTime: z.string(),
   jobRole: z.enum(["general", "developer", "designer", "pm"]),
   tone: z.enum(["warm", "savage", "hype", "calm"]),
   theme: z.enum(["auto", "light", "dark"]),
-  slackWebhookUrl: z.string(),
-  slackAutoShare: z.boolean(),
   birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  birthTime: z.string().regex(/^\d{2}:\d{2}$/),
+  birthTime: z.string().optional(),
+  birthTimeUnknown: z.boolean(),
   birthLocationName: z.string(),
 });
 
@@ -44,25 +42,25 @@ function Section({ icon: Icon, title, children }: { icon: typeof User; title: st
 }
 
 export function SettingsPage() {
-  const { profile, preferences, fortune, updatePreferences, setProfile, setView, resetAll } =
+  const { profile, preferences, updatePreferences, setProfile, setView, resetAll } =
     useAppStore();
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { isSubmitting },
   } = useForm<SettingsData>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      notificationTime: preferences.notificationTime,
       jobRole: preferences.jobRole,
       tone: preferences.tone,
       theme: preferences.theme,
-      slackWebhookUrl: preferences.slack.webhookUrl,
-      slackAutoShare: preferences.slack.autoShareOnNotification,
       birthDate: profile?.birthDate ?? "",
-      birthTime: profile?.birthTime ?? "12:00",
-      birthLocationName: profile?.birthLocation.name ?? "서울",
+      birthTime: profile?.birthTime ?? "",
+      birthTimeUnknown: !profile?.birthTime,
+      birthLocationName: profile?.birthLocation?.name ?? "서울",
     },
   });
 
@@ -70,20 +68,16 @@ export function SettingsPage() {
     const styleChanged = data.tone !== preferences.tone || data.jobRole !== preferences.jobRole;
 
     await updatePreferences({
-      notificationTime: data.notificationTime,
       jobRole: data.jobRole,
       tone: data.tone,
       theme: data.theme,
-      slack: {
-        webhookUrl: data.slackWebhookUrl,
-        autoShareOnNotification: data.slackAutoShare,
-      },
     });
 
+    const effectiveBirthTime = data.birthTimeUnknown ? undefined : data.birthTime;
     const profileChanged = profile && (
       data.birthDate !== profile.birthDate ||
-      data.birthTime !== profile.birthTime ||
-      data.birthLocationName !== profile.birthLocation.name
+      effectiveBirthTime !== profile.birthTime ||
+      data.birthLocationName !== profile.birthLocation?.name
     );
 
     if (profileChanged) {
@@ -95,7 +89,7 @@ export function SettingsPage() {
       const updatedProfile: UserProfile = {
         ...profile,
         birthDate: data.birthDate,
-        birthTime: data.birthTime,
+        birthTime: effectiveBirthTime,
         birthLocation: location,
         dayMaster: dayMaster.fullName,
         dayMasterHanja: dayMaster.stemHanja,
@@ -108,14 +102,6 @@ export function SettingsPage() {
 
     if (profileChanged || styleChanged) {
       useAppStore.getState().fetchFortune(true);
-    }
-  };
-
-  const handleTestSlack = async () => {
-    const url = (document.getElementById("slackWebhookUrl") as HTMLInputElement)?.value;
-    if (url && fortune) {
-      const ok = await sendToSlack(url, fortune);
-      alert(ok ? "전송 성공!" : "전송 실패. URL을 확인해주세요.");
     }
   };
 
@@ -149,7 +135,26 @@ export function SettingsPage() {
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label htmlFor="birthTime" className="text-xs">출생 시간</Label>
-                <Input id="birthTime" type="time" {...register("birthTime")} />
+                {watch("birthTimeUnknown") ? (
+                  <button
+                    type="button"
+                    className="w-full h-9 rounded-md border border-border bg-muted/50 text-xs text-muted-foreground flex items-center justify-center"
+                    onClick={() => { setValue("birthTimeUnknown", false); setValue("birthTime", "12:00"); }}
+                  >
+                    모름
+                  </button>
+                ) : (
+                  <div className="flex gap-1">
+                    <Input id="birthTime" type="time" {...register("birthTime")} className="flex-1" />
+                    <button
+                      type="button"
+                      className="px-2 rounded-md border border-border text-[10px] text-muted-foreground hover:bg-muted/50"
+                      onClick={() => { setValue("birthTimeUnknown", true); setValue("birthTime", ""); }}
+                    >
+                      모름
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="space-y-1">
                 <Label htmlFor="birthLocationName" className="text-xs">출생 도시</Label>
@@ -208,13 +213,6 @@ export function SettingsPage() {
           </div>
         </Section>
 
-        <Section icon={Bell} title="알림">
-          <div className="space-y-1">
-            <Label htmlFor="notificationTime" className="text-xs">알림 시간</Label>
-            <Input id="notificationTime" type="time" {...register("notificationTime")} />
-          </div>
-        </Section>
-
         <Section icon={Terminal} title="Claude CLI">
           <div className="space-y-1">
             <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
@@ -228,43 +226,12 @@ export function SettingsPage() {
           </div>
         </Section>
 
-        <Section icon={MessageSquare} title="Slack 연동">
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <Label htmlFor="slackWebhookUrl" className="text-xs">Webhook URL</Label>
-              <Input
-                id="slackWebhookUrl"
-                placeholder="https://hooks.slack.com/..."
-                {...register("slackWebhookUrl")}
-                className="text-xs"
-              />
-            </div>
-            <label className="flex items-center gap-2 text-xs cursor-pointer">
-              <input
-                type="checkbox"
-                {...register("slackAutoShare")}
-                className="accent-primary rounded"
-              />
-              매일 알림 시 자동 공유
-            </label>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full rounded-lg text-xs h-8"
-              onClick={handleTestSlack}
-            >
-              테스트 메시지 보내기
-            </Button>
-          </div>
-        </Section>
-
         <Button
           type="submit"
           className="w-full h-10 rounded-xl bg-gold/90 hover:bg-gold text-background font-semibold shadow-lg shadow-black/20 hover:shadow-xl transition-all"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "저장 중..." : "저장"}
+          {isSubmitting ? "묘하게 맞춰두는 중..." : "저장"}
         </Button>
 
         <Button
@@ -272,7 +239,7 @@ export function SettingsPage() {
           variant="ghost"
           className="w-full h-9 rounded-xl text-xs text-muted-foreground hover:text-red-500"
           onClick={() => {
-            if (confirm("모든 설정과 데이터를 초기화하고 처음부터 다시 시작할까요?")) {
+            if (confirm("묘의 모든 설정과 데이터를 초기화하고 처음부터 다시 시작할까요?")) {
               resetAll();
             }
           }}

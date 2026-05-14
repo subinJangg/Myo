@@ -47,111 +47,6 @@ function Divider() {
   );
 }
 
-const SUIT_STYLES: Record<string, { bg: string; accent: string }> = {
-  Wands: { bg: "#1a1510", accent: "#D4A855" },
-  Cups: { bg: "#101520", accent: "#6B9BC8" },
-  Swords: { bg: "#13151a", accent: "#9BAAB8" },
-  Pentacles: { bg: "#111810", accent: "#6BAA7B" },
-};
-
-function getSuit(name: string): string | null {
-  if (name.includes("Wands")) return "Wands";
-  if (name.includes("Cups")) return "Cups";
-  if (name.includes("Swords")) return "Swords";
-  if (name.includes("Pentacles")) return "Pentacles";
-  return null;
-}
-
-function SuitIcon({ suit, color, size = 36 }: { suit: string; color: string; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      {suit === "Wands" && (
-        <g fill={color}>
-          <polygon points="16,2 19,11 13,11" />
-          <rect x="14.8" y="11" width="2.4" height="17" rx="1.2" />
-        </g>
-      )}
-      {suit === "Cups" && (
-        <g fill={color}>
-          <path d="M10 7H22L19.5 19H12.5Z" />
-          <rect x="14.5" y="19" width="3" height="4" />
-          <rect x="11.5" y="23" width="9" height="2" rx="1" />
-        </g>
-      )}
-      {suit === "Swords" && (
-        <g fill={color}>
-          <polygon points="16,2 17.8,6 16.4,6 16.4,20 15.6,20 15.6,6 14.2,6" />
-          <rect x="11.5" y="20" width="9" height="2" rx="1" />
-          <rect x="14.2" y="22" width="3.6" height="5" rx="0.8" />
-        </g>
-      )}
-      {suit === "Pentacles" && (
-        <g>
-          <circle cx="16" cy="16" r="11" fill="none" stroke={color} strokeWidth="1.2" />
-          <polygon points="16,6.5 18,12.5 24.5,12.5 19.3,16.3 21.2,22.5 16,18.8 10.8,22.5 12.7,16.3 7.5,12.5 14,12.5" fill={color} />
-        </g>
-      )}
-    </svg>
-  );
-}
-
-function MinorCardFace({ card }: { card: TarotCard }) {
-  const suit = getSuit(card.name);
-  if (!suit) return null;
-  const s = SUIT_STYLES[suit];
-
-  return (
-    <div
-      className="w-full h-full flex flex-col items-center justify-center relative"
-      style={{ backgroundColor: s.bg }}
-    >
-      <div
-        className="absolute inset-0 opacity-[0.07]"
-        style={{ background: `radial-gradient(circle at center, ${s.accent}, transparent 70%)` }}
-      />
-      <div className="relative z-[1] flex flex-col items-center">
-        <SuitIcon suit={suit} color={s.accent} size={40} />
-        <p className="text-[16px] font-serif mt-2 tracking-[2px]" style={{ color: s.accent }}>
-          {card.symbol}
-        </p>
-        <p
-          className="text-[8px] mt-1 tracking-[2px] uppercase opacity-60"
-          style={{ color: s.accent, fontFamily: "'Cinzel', serif" }}
-        >
-          {suit}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function ArcDecoration() {
-  const rays = Array.from({ length: 35 }, (_, i) => {
-    const angle = Math.PI * (0.05 + (i / 34) * 0.9);
-    const r1 = 20;
-    const r2 = 55 + (i % 3 === 0 ? 40 : i % 2 === 0 ? 25 : 15);
-    return { x1: 160 - Math.cos(angle) * r1, y1: 165 - Math.sin(angle) * r1, x2: 160 - Math.cos(angle) * r2, y2: 165 - Math.sin(angle) * r2 };
-  });
-  const dots = Array.from({ length: 40 }, (_, i) => {
-    const angle = Math.PI * (i / 39);
-    const r = 128;
-    return { cx: 160 - Math.cos(angle) * r, cy: 165 - Math.sin(angle) * r };
-  });
-
-  return (
-    <svg className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-0" style={{ bottom: 120, width: 320, height: 180 }} viewBox="0 0 320 180">
-      <path d="M 8 165 A 152 152 0 0 1 312 165" fill="none" stroke="#C8A96B" strokeWidth="0.5" strokeOpacity="0.18" strokeDasharray="2 6" />
-      {dots.map((d, i) => <circle key={`d${i}`} cx={d.cx} cy={d.cy} r="0.5" fill="#C8A96B" fillOpacity="0.12" />)}
-      {rays.map((r, i) => <line key={`r${i}`} x1={r.x1} y1={r.y1} x2={r.x2} y2={r.y2} stroke="#C8A96B" strokeWidth="0.3" strokeOpacity="0.08" />)}
-      <polygon points="160,30 161.8,36 168,37 161.8,38 160,44 158.2,38 152,37 158.2,36" fill="#C8A96B" fillOpacity="0.35" />
-      <circle cx="90" cy="65" r="0.7" fill="#C8A96B" fillOpacity="0.2" />
-      <circle cx="230" cy="55" r="0.5" fill="#C8A96B" fillOpacity="0.15" />
-      <circle cx="60" cy="110" r="0.4" fill="#C8A96B" fillOpacity="0.12" />
-      <circle cx="260" cy="100" r="0.6" fill="#C8A96B" fillOpacity="0.15" />
-    </svg>
-  );
-}
-
 export function TarotPage() {
   const { preferences, setView } = useAppStore();
 
@@ -341,6 +236,13 @@ ${advice}`;
             >
               묘한 카드
             </p>
+            <div className="flex items-center justify-center gap-2.5 mt-3">
+              <span className="w-12 h-[1px] bg-primary/50" />
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#C8A96B" fillOpacity="0.6" />
+              </svg>
+              <span className="w-12 h-[1px] bg-primary/50" />
+            </div>
           </div>
 
           {/* Draw phase */}
@@ -499,12 +401,12 @@ ${advice}`;
                 {phase !== "reveal" && (
                   <div className="flex flex-col justify-center pt-1 animate-fade-in min-w-0">
                     <p
-                      className="text-[9px] text-primary/60 tracking-[3px] uppercase"
+                      className="text-[9px] text-primary tracking-[3px] uppercase"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       today's card
                     </p>
-                    <p className="text-[17px] text-foreground font-medium mt-1.5 tracking-[1px]" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                    <p className="text-[17px] text-foreground font-medium mt-1.5 tracking-[1px]">
                       {card.nameKo}
                     </p>
                     <p
@@ -519,7 +421,6 @@ ${advice}`;
                           <span
                             key={kw}
                             className="px-1.5 py-[2px] border border-primary/30 rounded-full text-[9px] text-primary/80 tracking-[0.5px]"
-                            style={{ fontFamily: "'Noto Serif KR', serif" }}
                           >
                             {kw}
                           </span>
@@ -563,21 +464,27 @@ ${advice}`;
               {phase === "result" && (
                 <div className="mt-3 animate-fade-in">
                   {/* Divider */}
-                  <div className="flex items-center justify-center gap-2.5 mb-4">
-                    <span className="w-10 h-[0.5px] bg-primary/30" />
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <svg className="text-primary/40 shrink-0" width="7" height="7" viewBox="0 0 32 32">
+                      <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
+                    </svg>
+                    <span className="flex-1 h-[0.5px]" style={{ background: "linear-gradient(to right, transparent, rgba(200,169,107,0.3), transparent)" }} />
                     <span
-                      className="text-[9px] text-primary/50 tracking-[3px] uppercase"
+                      className="text-[10px] text-primary tracking-[4px] uppercase shrink-0"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       reading
                     </span>
-                    <span className="w-10 h-[0.5px] bg-primary/30" />
+                    <span className="flex-1 h-[0.5px]" style={{ background: "linear-gradient(to right, transparent, rgba(200,169,107,0.3), transparent)" }} />
+                    <svg className="text-primary/40 shrink-0" width="7" height="7" viewBox="0 0 32 32">
+                      <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
+                    </svg>
                   </div>
 
                   {/* Headline */}
                   {headline && (
                     <p
-                      className="text-[15px] text-primary-light font-medium leading-[1.5] mb-3 text-center tracking-[0.5px]"
+                      className="text-[17px] gradient-text font-medium leading-[1.5] mb-4 text-center tracking-[0.5px]"
                       style={{ fontFamily: "'Noto Serif KR', serif" }}
                     >
                       &ldquo;{headline}&rdquo;
@@ -586,32 +493,28 @@ ${advice}`;
 
                   {/* Interpretation */}
                   {interpretation && (
-                    <p
-                      className="text-[11.5px] text-foreground/75 leading-[2]"
-                      style={{ fontFamily: "'Noto Serif KR', serif" }}
-                    >
-                      {interpretation}
-                    </p>
+                    <div className="border-l-[1.5px] border-primary/30 pl-3.5 py-0.5">
+                      <p className="text-[12.5px] text-foreground/80 leading-[2.1]">
+                        {interpretation}
+                      </p>
+                    </div>
                   )}
 
                   {/* Advice card */}
                   {advice && (
-                    <div className="mt-4 px-3 py-2.5 border border-primary/25 rounded-md bg-primary/[0.04]">
-                      <div className="flex items-start gap-2">
-                        <svg className="text-primary/60 mt-[2px] shrink-0" width="12" height="12" viewBox="0 0 32 32">
+                    <div className="mt-4 px-3.5 py-3 rounded-lg glass">
+                      <div className="flex items-start gap-2.5">
+                        <svg className="text-primary mt-[2px] shrink-0" width="14" height="14" viewBox="0 0 32 32">
                           <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
                         </svg>
                         <div>
                           <p
-                            className="text-[9px] text-primary/50 tracking-[2px] uppercase mb-1"
+                            className="text-[9px] text-primary tracking-[2px] uppercase mb-1.5"
                             style={{ fontFamily: "'Cinzel', serif" }}
                           >
                             today's advice
                           </p>
-                          <p
-                            className="text-[11.5px] text-foreground/85 leading-[1.7]"
-                            style={{ fontFamily: "'Noto Serif KR', serif" }}
-                          >
+                          <p className="text-[12.5px] text-foreground/90 leading-[1.8] font-medium">
                             {advice}
                           </p>
                         </div>
@@ -624,14 +527,12 @@ ${advice}`;
                     <button
                       onClick={handleReset}
                       className="flex-1 py-2.5 rounded-md border border-primary/30 text-subtext/80 text-[11px] tracking-[1px] hover:border-primary/60 hover:text-foreground transition-all"
-                      style={{ fontFamily: "'Noto Serif KR', serif" }}
                     >
                       다시 뽑기
                     </button>
                     <button
                       onClick={handleCopy}
                       className="flex-1 py-2.5 rounded-md bg-primary/90 text-background text-[11px] font-medium tracking-[1px] hover:bg-primary transition-all flex items-center justify-center gap-1.5"
-                      style={{ fontFamily: "'Noto Serif KR', serif" }}
                     >
                       {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                       {copied ? "복사됨" : "복사"}

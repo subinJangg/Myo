@@ -10,6 +10,7 @@
     "core:window:allow-set-focus",
     "core:window:allow-set-position",
     "core:window:allow-is-visible",
+    "core:window:allow-close",
     "store:default",
     "notification:default",
     "autostart:default",
@@ -18,8 +19,7 @@
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "https://generativelanguage.googleapis.com/**" },
-        { "url": "https://hooks.slack.com/**" }
+        { "url": "https://generativelanguage.googleapis.com/**" }
       ]
     }
   ]
