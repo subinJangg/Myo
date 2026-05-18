@@ -1,7 +1,6 @@
 import type { DailyFortune, JobRole, Tone, UserProfile } from "@/types";
-import { getFullChart, getTodayPillar, getTenGodRelation, getTenGodDescription, getDayMasterPersonality } from "./saju";
-import { calcDailyScore } from "./scoring";
-import type { DailyScoreResult } from "./scoring";
+import { getFullChart, getTodayPillar, getTenGodRelation, getTenGodDescription, getDayMasterPersonality, STEM_ELEMENTS, elementOfBranch } from "./saju";
+import { calcStrengthAndYongsin } from "./scoring";
 import { invoke } from "@tauri-apps/api/core";
 
 export function buildStyleGuide(jobRole: JobRole, tone: Tone): string {
@@ -22,70 +21,68 @@ export function buildStyleGuide(jobRole: JobRole, tone: Tone): string {
   return `${jobGuide[jobRole]} ${toneGuide[tone]}`;
 }
 
+type SajuContext = {
+  dayMaster: string;
+  dayMasterHanja: string;
+  personality: string;
+  level: "신강" | "중화" | "신약";
+  yongsin: string;
+  gisin: string;
+  todayStemElement: string;
+  todayBranchElement: string;
+  tenGod: string;
+  tenGodDesc: string;
+  zodiacSign: string;
+};
+
 function buildPrompt(
-  profile: UserProfile,
-  scoreResult: DailyScoreResult,
-  tenGod: string,
+  saju: SajuContext,
   jobRole: JobRole,
   tone: Tone,
 ): string {
-  const tierDesc: Record<string, string> = {
-    "大吉": "매우 좋은 날 — 밝고 긍정적인 톤",
-    "吉": "좋은 날 — 자연스럽게 긍정적",
-    "中": "평범한 날 — 좋지도 나쁘지도 않은 균형",
-    "小凶": "조심할 날 — 약간의 주의 필요",
-    "凶": "힘든 날 — 위로와 조심 강조",
-  };
-
-  return `당신은 "묘(Myo)"라는 운세 앱의 전문 해석가입니다.
+  return `당신은 "묘(Myo)"라는 운세 앱의 전문 사주/별자리 해석가입니다.
 "묘하다", "묘한" 같은 시그니처 표현을 자연스럽게 1~2회 사용해주세요.
 단정적이지 않고 여운을 남기는 표현을 사용하세요. "~할 수 있어요", "~한 하루가 될지도"
 
 스타일 가이드: ${buildStyleGuide(jobRole, tone)}
 
-[사주 정보 — 코드가 이미 계산한 결과]
-- 일간: ${profile.dayMaster} (${profile.dayMasterHanja}) — ${getDayMasterPersonality(profile.dayMaster.charAt(0))}
-- 신강/신약: ${scoreResult.level}
-- 용신: ${scoreResult.yongsin} — 필요한 오행
-- 십신 관계: ${tenGod}
-- 오늘 묘점: ${scoreResult.score}점 (${scoreResult.tier})
-- 별자리: ${profile.zodiacSign}
+[사주 정보 — 코드가 계산한 결과]
+- 일간: ${saju.dayMaster} (${saju.dayMasterHanja}) — ${saju.personality}
+- 신강/신약: ${saju.level}
+- 용신(필요한 오행): ${saju.yongsin}
+- 기신(해로운 오행): ${saju.gisin}
+- 오늘 일주 천간 오행: ${saju.todayStemElement}
+- 오늘 일주 지지 오행: ${saju.todayBranchElement}
+- 오늘의 십신 관계: ${saju.tenGod} — ${saju.tenGodDesc}
+- 별자리: ${saju.zodiacSign}
 
 [해석 요청]
-위 사주 정보를 바탕으로 오늘의 묘를 해석해주세요.
-점수는 이미 정해졌으니 새로 매기지 마세요.
-"${scoreResult.score}점 ${scoreResult.tier}" 의 톤에 맞게 (${tierDesc[scoreResult.tier]}) 해석해주세요.
+위 사주 분석 결과를 바탕으로 오늘의 운세를 해석하고, 묘점(luckScore)을 1~100 사이로 매겨주세요.
+점수 기준: 오늘 일주의 오행이 용신에 가까우면 높은 점수, 기신에 가까우면 낮은 점수. 십신 관계의 길흉도 종합 판단하세요.
 
 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트 없이 순수 JSON만:
 {
+  "luckScore": 1~100 사이 정수 (묘점),
   "saju": {
-    "headline": "사주 기반 한 줄 요약 (15자 이내)",
-    "body": "십신 관계와 오행 기반 해석 3-5줄",
-    "advice": "사주 관점 조언 한 줄"
-  },
-  "astrology": {
-    "headline": "별자리 기반 한 줄 요약 (15자 이내)",
-    "body": "별자리 트랜짓 기반 해석 3-5줄",
-    "advice": "별자리 관점 조언 한 줄"
-  },
-  "combined": {
-    "headline": "사주+별자리 종합 한 줄 요약 (15자 이내)",
-    "body": "두 관점을 종합한 본문 3-5줄",
-    "caution": "주의할 묘 한 줄 (묘하게를 자연스럽게 포함)",
+    "headline": "오늘 하루를 요약하는 감성 한 줄 (20자 이내, 직업 비유 필수. 용신/오행/십신 같은 사주 용어는 절대 쓰지 말 것)",
+    "body": "십신 관계와 오행 기반 해석 3-5줄 (스타일 가이드의 직업 비유 필수 반영)",
+    "caution": "사주 관점에서 오늘 주의할 점 또는 조언 한 줄",
     "luckyColor": "색상 한글 이름",
     "luckyColorHex": "#RRGGBB 형식 HEX 컬러 코드",
     "luckyNumber": 1~9 사이 정수,
-    "luckyFood": "음식 이름",
-    "warning": "주의사항 한 줄"
+    "luckyFood": "음식 이름"
+  },
+  "astrology": {
+    "headline": "오늘 하루를 요약하는 감성 한 줄 (20자 이내, 직업 비유 필수. 별자리 이름은 절대 쓰지 말 것)",
+    "body": "별자리 트랜짓 기반 해석 3-5줄 (스타일 가이드의 직업 비유 필수 반영)",
+    "caution": "별자리 관점에서 오늘 주의할 점 또는 조언 한 줄"
   }
 }`;
 }
 
 function generateFallbackFortune(
   profile: UserProfile,
-  scoreResult: DailyScoreResult,
-  tenGod: string,
-  tenGodDesc: string,
+  saju: SajuContext,
 ) {
   const colors = [
     { name: "코발트 블루", hex: "#4A6FB5" },
@@ -102,26 +99,20 @@ function generateFallbackFortune(
   const luckyColor = colors[seed % colors.length];
 
   return {
+    luckScore: 50,
     saju: {
-      headline: `${tenGod}의 기운이 감도는 하루`,
-      body: `오늘 ${profile.dayMaster}(${profile.dayMasterHanja}) 일간인 당신에게 묘한 기운이 찾아옵니다. ${tenGodDesc}`,
-      advice: "오행의 흐름에 따라 차분하게 하루를 보내세요.",
-    },
-    astrology: {
-      headline: `${profile.zodiacSign}에 활력이 찾아오는 날`,
-      body: `${profile.zodiacSign} 태양궁의 영향 아래, 오늘은 새로운 기회가 다가올 수 있습니다. 직감을 믿고 행동하면 좋은 결과가 있을 것입니다.`,
-      advice: "별자리의 흐름을 믿고 자신감을 가져보세요.",
-    },
-    combined: {
-      headline: `${tenGod}의 묘한 기운이 감도는 하루`,
-      body: `오늘 ${profile.dayMaster}(${profile.dayMasterHanja}) 일간인 당신에게 묘한 기운이 찾아옵니다. ${tenGodDesc} 별자리 ${profile.zodiacSign}의 영향도 더해져, 묘하게 특별한 하루가 될지도.`,
-      luckScore: scoreResult.score,
-      caution: "급한 결정은 피하고, 한 번 더 생각해보세요.",
+      headline: `${saju.tenGod}의 기운이 감도는 하루`,
+      body: `오늘 ${profile.dayMaster}(${profile.dayMasterHanja}) 일간인 당신에게 묘한 기운이 찾아옵니다. ${saju.tenGodDesc}`,
+      caution: "급한 결정은 피하고, 오행의 흐름에 맡겨보세요.",
       luckyColor: luckyColor.name,
       luckyColorHex: luckyColor.hex,
       luckyNumber: (seed % 9) + 1,
       luckyFood: foods[seed % foods.length],
-      warning: "급한 결정은 피하고, 한 번 더 생각해보세요.",
+    },
+    astrology: {
+      headline: `${profile.zodiacSign}에 활력이 찾아오는 날`,
+      body: `${profile.zodiacSign} 태양궁의 영향 아래, 오늘은 새로운 기회가 다가올 수 있습니다. 직감을 믿고 행동하면 좋은 결과가 있을 것입니다.`,
+      caution: "과한 기대는 금물, 별의 흐름에 맡겨보세요.",
     },
   };
 }
@@ -136,28 +127,43 @@ export async function generateDailyFortune(
 
   const chart = getFullChart(profile.birthDate, profile.birthTime);
   const todayPillar = getTodayPillar();
-  const scoreResult = calcDailyScore(chart, todayPillar, dateStr);
 
   const tenGod = getTenGodRelation(chart.day.stem, todayPillar.stem);
   const tenGodDesc = getTenGodDescription(tenGod);
+  const analysis = calcStrengthAndYongsin(chart);
+
+  const saju: SajuContext = {
+    dayMaster: profile.dayMaster,
+    dayMasterHanja: profile.dayMasterHanja,
+    personality: getDayMasterPersonality(profile.dayMaster.charAt(0)),
+    level: analysis.level,
+    yongsin: analysis.yongsin,
+    gisin: analysis.gisin,
+    todayStemElement: STEM_ELEMENTS[todayPillar.stem] ?? "토",
+    todayBranchElement: elementOfBranch(todayPillar.branch),
+    tenGod,
+    tenGodDesc,
+    zodiacSign: profile.zodiacSign,
+  };
 
   let llmResult: {
-    saju: { headline: string; body: string; advice: string };
-    astrology: { headline: string; body: string; advice: string };
-    combined: DailyFortune["combined"];
+    luckScore: number;
+    saju: { headline: string; body: string; caution: string; luckyColor: string; luckyColorHex: string; luckyNumber: number; luckyFood: string };
+    astrology: { headline: string; body: string; caution: string };
   };
   let _debugSource = "unknown";
   let _debugError = "";
 
   try {
-    const prompt = buildPrompt(profile, scoreResult, tenGod, jobRole, tone);
+    const prompt = buildPrompt(saju, jobRole, tone);
     const result = await invoke<string>("call_claude", { prompt });
     const jsonMatch = result.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
-      parsed.combined.luckScore = scoreResult.score;
-      parsed.combined.caution = parsed.combined.caution ?? parsed.combined.warning ?? "";
-      parsed.combined.luckyColorHex = parsed.combined.luckyColorHex ?? "#4A6FB5";
+      parsed.luckScore = Math.max(1, Math.min(100, parsed.luckScore ?? 50));
+      parsed.saju.caution = parsed.saju.caution ?? "";
+      parsed.saju.luckyColorHex = parsed.saju.luckyColorHex ?? "#4A6FB5";
+      parsed.astrology.caution = parsed.astrology.caution ?? "";
       llmResult = parsed;
       _debugSource = "claude-cli";
     } else {
@@ -167,7 +173,7 @@ export async function generateDailyFortune(
     console.error("묘하게 풀이가 막혔어요:", e);
     _debugError = String(e);
     _debugSource = "fallback";
-    llmResult = generateFallbackFortune(profile, scoreResult, tenGod, tenGodDesc);
+    llmResult = generateFallbackFortune(profile, saju);
   }
 
   return {
@@ -175,22 +181,27 @@ export async function generateDailyFortune(
     generatedAt: new Date().toISOString(),
     _debugSource,
     _debugError,
+    luckScore: llmResult.luckScore,
     saju: {
       todayDayPillar: `${todayPillar.stemHanja}${todayPillar.branchHanja}`,
       todayDayPillarHanja: todayPillar.stemHanja,
+      todayStemFullName: `${todayPillar.stem}${todayPillar.element}`,
       relation: tenGod,
       summary: tenGodDesc,
       headline: llmResult.saju.headline,
       body: llmResult.saju.body,
-      advice: llmResult.saju.advice,
+      caution: llmResult.saju.caution,
+      luckyColor: llmResult.saju.luckyColor,
+      luckyColorHex: llmResult.saju.luckyColorHex,
+      luckyNumber: llmResult.saju.luckyNumber,
+      luckyFood: llmResult.saju.luckyFood,
     },
     astrology: {
       zodiacSign: profile.zodiacSign,
       dailyTransit: `${profile.zodiacSign} 태양궁 트랜짓`,
       headline: llmResult.astrology.headline,
       body: llmResult.astrology.body,
-      advice: llmResult.astrology.advice,
+      caution: llmResult.astrology.caution,
     },
-    combined: llmResult.combined,
   };
 }

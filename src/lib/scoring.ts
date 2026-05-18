@@ -93,6 +93,18 @@ export type DailyScoreResult = {
   branchRelation: "용신" | "기신" | "한신";
 };
 
+export type SajuAnalysis = {
+  level: "신강" | "중화" | "신약";
+  yongsin: string;
+  gisin: string;
+};
+
+export function calcStrengthAndYongsin(chart: FullChart): SajuAnalysis {
+  const strength = calcStrengthScore(chart);
+  const { yongsin, gisin } = determineYongsin(strength);
+  return { level: strength.level, yongsin, gisin };
+}
+
 export function calcDailyScore(chart: FullChart, todayPillar: Pillar, dateStr: string): DailyScoreResult {
   const strength = calcStrengthScore(chart);
   const { yongsin, gisin } = determineYongsin(strength);

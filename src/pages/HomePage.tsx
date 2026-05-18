@@ -86,7 +86,7 @@ export function HomePage() {
       <div className="w-full max-h-[620px] h-full overflow-hidden">
         <div className="ornate-frame relative h-full">
           <SparkleField />
-          <div className="relative z-[1] px-[30px] py-[30px] flex flex-col h-full">
+          <div className="relative z-[1] px-[36px] py-[30px] flex flex-col h-full">
           {/* Header */}
           <div className="text-center mb-1 mt-5">
             <div className="flex items-center justify-center gap-3">
@@ -110,92 +110,66 @@ export function HomePage() {
             </p>
           </div>
 
-          {fortune ? (
-            <>
-              {/* Fortune loaded — show summary */}
-              <div className="flex justify-center items-center py-2">
-                <div className="relative w-[100px] h-[100px] flex items-center justify-center">
-                  <StarCircle />
-                  <img
-                    src="/moon-cat.png"
-                    alt="묘"
-                    className="relative z-[1] w-[75px] pointer-events-none select-none animate-float"
-                    draggable={false}
-                  />
-                </div>
-              </div>
-
-              {/* Today's Myo headline */}
-              <div className="text-center mb-3">
-                <p className="text-[10px] text-primary tracking-[3px] uppercase mb-2" style={{ fontFamily: "'Cinzel', serif" }}>
-                  오늘의 묘
-                </p>
-                <p
-                  className="text-[16px] gradient-text font-medium leading-[1.6] tracking-[-0.3px] mb-2"
-                  style={{ fontFamily: "'Noto Serif KR', serif" }}
+          <div className="flex justify-center items-center py-4">
+            <div className="relative w-[160px] h-[160px] flex items-center justify-center">
+              <StarCircle />
+              {/* 반짝이는 별들 */}
+              {[
+                { x: 5, y: 10, delay: "0s", size: 5 },
+                { x: 88, y: 5, delay: "1s", size: 4 },
+                { x: 92, y: 70, delay: "1.8s", size: 5 },
+                { x: 2, y: 75, delay: "0.5s", size: 4 },
+                { x: 50, y: -2, delay: "1.4s", size: 3 },
+                { x: 96, y: 40, delay: "2.2s", size: 3 },
+                { x: -2, y: 45, delay: "0.8s", size: 3 },
+                { x: 48, y: 96, delay: "1.6s", size: 4 },
+              ].map((star, i) => (
+                <svg
+                  key={i}
+                  className="absolute animate-twinkle pointer-events-none"
+                  style={{ left: `${star.x}%`, top: `${star.y}%`, animationDelay: star.delay, animationDuration: "2.5s" }}
+                  width={star.size * 2} height={star.size * 2} viewBox="0 0 16 16"
                 >
-                  &ldquo;{fortune.combined.headline}&rdquo;
-                </p>
-                <p className="text-[11px] text-subtext/70 leading-[1.8] px-2 line-clamp-2">
-                  {fortune.combined.body}
-                </p>
+                  <polygon points="8,1 9,7 15,8 9,9 8,15 7,9 1,8 7,7" fill="#C8A96B" fillOpacity="0.7" />
+                </svg>
+              ))}
+              {/* 고양이 글로우 */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-[80px] h-[80px] rounded-full" style={{ background: "radial-gradient(circle, rgba(200,169,107,0.12) 0%, transparent 70%)" }} />
               </div>
+              <img
+                src="/moon-cat.png"
+                alt="묘"
+                className="relative z-[1] w-[105px] pointer-events-none select-none animate-float"
+                style={{ filter: "drop-shadow(0 0 8px rgba(200,169,107,0.25))" }}
+                draggable={false}
+              />
+            </div>
+          </div>
 
-              {/* Score + Detail */}
-              <div className="flex items-center justify-center gap-4 mb-3">
-                <div className="flex items-end gap-0.5">
-                  <span className="text-[28px] gradient-text font-medium leading-none" style={{ fontFamily: "'Cinzel', serif" }}>
-                    {fortune.combined.luckScore}
-                  </span>
-                  <span className="text-[11px] text-primary/40 mb-0.5" style={{ fontFamily: "'Cinzel', serif" }}>
-                    /100
-                  </span>
-                </div>
-                <OrnateButton onClick={() => setView("card")}>
-                  자세히 보기
-                </OrnateButton>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* No fortune yet — show CTA */}
-              <div className="flex justify-center items-center py-4">
-                <div className="relative w-[140px] h-[140px] flex items-center justify-center">
-                  <StarCircle />
-                  <img
-                    src="/moon-cat.png"
-                    alt="묘"
-                    className="relative z-[1] w-[105px] pointer-events-none select-none animate-float"
-                    draggable={false}
-                  />
-                </div>
-              </div>
+          <div className="text-center mb-3">
+            <p className="text-[16px] text-foreground font-medium tracking-[1px]">
+              오늘의 묘
+            </p>
+            <p className="text-[9px] text-muted-foreground mt-0.5 tracking-[1px] uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
+              daily fortune
+            </p>
+            <p className="text-[11px] text-subtext mt-2 tracking-[1px]">
+              사주 · 별자리 풀이를 펼치다
+            </p>
+          </div>
 
-              <div className="text-center mb-3">
-                <p className="text-[10px] text-primary-light tracking-[4px] font-serif uppercase mb-1.5">
-                  TODAY'S READING
-                </p>
-                <p className="text-[16px] text-foreground font-serif font-medium tracking-[1px]">
-                  오늘의 묘 보기
-                </p>
-                <p className="text-[11px] text-subtext mt-1 tracking-[1px]">
-                  사주 · 별자리 · 종합 풀이를 펼치다
-                </p>
-              </div>
-
-              <div className="text-center mb-4">
-                <OrnateButton onClick={() => setView("card")}>
-                  오늘의 묘 풀기
-                </OrnateButton>
-              </div>
-            </>
-          )}
+          <div className="text-center mb-4">
+            <OrnateButton onClick={() => setView("card")}>
+              {fortune ? "오늘의 묘 보기" : "오늘의 묘 풀기"}
+            </OrnateButton>
+          </div>
 
           {/* Feature Grid */}
-          <div className="grid grid-cols-3 gap-2 mb-2">
+          <div className="grid grid-cols-3 gap-1.5 mb-2">
             <button
               onClick={() => setView("tarot")}
-              className="bg-card/40 border border-primary/70 rounded-md py-3 px-2 text-center hover:border-primary hover:bg-primary/10 active:scale-[0.97] transition-all"
+              className="bg-card/40 border border-primary/70 rounded-md py-2.5 px-1.5 text-center hover:border-primary hover:bg-primary/10 active:scale-[0.97] transition-all"
             >
               <svg
                 className="mx-auto mb-1.5 text-primary"
@@ -218,7 +192,7 @@ export function HomePage() {
                 tarot
               </p>
             </button>
-            <button onClick={showComingSoon} className="bg-card/40 border border-primary/40 rounded-md py-3 px-2 text-center opacity-40 hover:opacity-70 hover:border-primary/60 hover:bg-primary/10 active:scale-[0.97] transition-all cursor-pointer">
+            <button onClick={showComingSoon} className="bg-card/40 border border-primary/40 rounded-md py-2.5 px-1.5 text-center opacity-40 hover:opacity-70 hover:border-primary/60 hover:bg-primary/10 active:scale-[0.97] transition-all cursor-pointer">
               <svg
                 className="mx-auto mb-1.5 text-primary"
                 width="22"
@@ -236,7 +210,7 @@ export function HomePage() {
                 compatibility
               </p>
             </button>
-            <button onClick={showComingSoon} className="bg-card/40 border border-primary/40 rounded-md py-3 px-2 text-center opacity-40 hover:opacity-70 hover:border-primary/60 hover:bg-primary/10 active:scale-[0.97] transition-all cursor-pointer">
+            <button onClick={showComingSoon} className="bg-card/40 border border-primary/40 rounded-md py-2.5 px-1.5 text-center opacity-40 hover:opacity-70 hover:border-primary/60 hover:bg-primary/10 active:scale-[0.97] transition-all cursor-pointer">
               <svg
                 className="mx-auto mb-1.5 text-primary"
                 width="22"
@@ -260,7 +234,7 @@ export function HomePage() {
           </div>
 
           {/* Bottom bar */}
-          <div className="flex items-center justify-center gap-5 mt-5 mb-2" style={{ fontFamily: "'Cinzel', serif" }}>
+          <div className="flex items-center justify-center gap-5 mt-5 mb-5" style={{ fontFamily: "'Cinzel', serif" }}>
             <button
               onClick={() => { toggleDetached(); setPinHover(false); }}
               onMouseEnter={() => setPinHover(true)}

@@ -353,7 +353,7 @@ ${advice}`;
 
           {/* Reveal / Reading / Result */}
           {(phase === "reveal" || phase === "reading" || phase === "result") && card && (
-            <div className="flex-1 overflow-y-auto animate-fade-in">
+            <div className="flex-1 overflow-y-auto animate-fade-in px-2">
               <Divider />
 
               {/* Card + Side info */}
@@ -401,12 +401,12 @@ ${advice}`;
                 {phase !== "reveal" && (
                   <div className="flex flex-col justify-center pt-1 animate-fade-in min-w-0">
                     <p
-                      className="text-[9px] text-primary tracking-[3px] uppercase"
+                      className="text-[11px] text-primary tracking-[3px] uppercase"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       today's card
                     </p>
-                    <p className="text-[17px] text-foreground font-medium mt-1.5 tracking-[1px]">
+                    <p className="text-[15px] text-foreground font-medium mt-1.5 tracking-[1px]">
                       {card.nameKo}
                     </p>
                     <p
@@ -420,7 +420,7 @@ ${advice}`;
                         {card.keywords.split(", ").map((kw) => (
                           <span
                             key={kw}
-                            className="px-1.5 py-[2px] border border-primary/30 rounded-full text-[9px] text-primary/80 tracking-[0.5px]"
+                            className="px-2.5 py-[3px] border border-primary/40 rounded-full text-[11px] text-foreground/70 tracking-[0.5px]"
                           >
                             {kw}
                           </span>
@@ -493,7 +493,7 @@ ${advice}`;
 
                   {/* Interpretation */}
                   {interpretation && (
-                    <div className="border-l-[1.5px] border-primary/30 pl-3.5 py-0.5">
+                    <div className="py-0.5">
                       <p className="text-[12.5px] text-foreground/80 leading-[2.1]">
                         {interpretation}
                       </p>
@@ -502,23 +502,16 @@ ${advice}`;
 
                   {/* Advice card */}
                   {advice && (
-                    <div className="mt-4 px-3.5 py-3 rounded-lg glass">
-                      <div className="flex items-start gap-2.5">
-                        <svg className="text-primary mt-[2px] shrink-0" width="14" height="14" viewBox="0 0 32 32">
-                          <polygon points="16,2 18.3,13.7 30,16 18.3,18.3 16,30 13.7,18.3 2,16 13.7,13.7" fill="currentColor" />
-                        </svg>
-                        <div>
-                          <p
-                            className="text-[9px] text-primary tracking-[2px] uppercase mb-1.5"
-                            style={{ fontFamily: "'Cinzel', serif" }}
-                          >
-                            today's advice
-                          </p>
-                          <p className="text-[12.5px] text-foreground/90 leading-[1.8] font-medium">
-                            {advice}
-                          </p>
-                        </div>
-                      </div>
+                    <div className="mt-4 px-4 py-3.5 rounded-lg bg-primary/[0.06] border border-primary/20">
+                      <p
+                        className="text-[11px] text-primary tracking-[2px] uppercase mb-2"
+                        style={{ fontFamily: "'Cinzel', serif" }}
+                      >
+                        today's advice
+                      </p>
+                      <p className="text-[13px] text-foreground leading-[1.9] font-medium">
+                        {advice}
+                      </p>
                     </div>
                   )}
 

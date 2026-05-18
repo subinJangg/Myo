@@ -3,9 +3,9 @@ import { format } from "date-fns";
 import { Loader2, Check } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
 import { ZODIAC_SIGNS } from "@/types";
-import { getDayMasterPersonality, getDayMasterEnglish } from "@/lib/saju";
+import { ZodiacConstellation } from "@/components/ZodiacConstellation";
 
-type Tab = "saju" | "astrology" | "combined";
+type Tab = "saju" | "astrology";
 
 function SparkleField() {
   return (
@@ -55,7 +55,7 @@ export function FortuneCard() {
     setView,
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<Tab>("combined");
+  const [activeTab, setActiveTab] = useState<Tab>("saju");
   const [loadingStep, setLoadingStep] = useState(0);
   const loadingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [funMessage, setFunMessage] = useState("");
@@ -128,14 +128,15 @@ export function FortuneCard() {
   const [copied, setCopied] = useState(false);
   const handleCopy = async () => {
     if (!fortune) return;
+    const tab = activeTab === "saju" ? fortune.saju : fortune.astrology;
     const text = `✦ 오늘의 묘 · ${format(today, "yyyy.MM.dd")}
 
-"${fortune.combined.headline}"
+"${tab.headline}"
 
-${fortune.combined.body}
+${tab.body}
 
-🐾 묘점 ${fortune.combined.luckScore}/100
-⚠ 주의할 묘: ${fortune.combined.caution || fortune.combined.warning}`;
+🐾 묘점 ${fortune.luckScore}/100
+⚠ 주의할 묘: ${tab.caution}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -144,32 +145,24 @@ ${fortune.combined.body}
   const tabs: { key: Tab; label: string }[] = [
     { key: "saju", label: "사주" },
     { key: "astrology", label: "별자리" },
-    { key: "combined", label: "종합" },
   ];
 
-  const getActiveContent = () => {
-    if (!fortune) return null;
-    if (activeTab === "saju") return fortune.saju;
-    if (activeTab === "astrology") return fortune.astrology;
-    return fortune.combined;
-  };
-
-  const content = getActiveContent();
+  const content = fortune ? (activeTab === "saju" ? fortune.saju : fortune.astrology) : null;
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="flex-1 overflow-y-auto">
-        <div className="ornate-frame relative min-h-full">
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="ornate-frame relative h-full">
           <SparkleField />
-          <div className="relative z-[1] px-[30px] py-[22px]">
+          <div className="absolute inset-[23px] z-[1] flex flex-col overflow-hidden rounded-[4px]">
 
-          {/* Navbar */}
-          <div className="flex items-center justify-between mt-3 mb-3">
+          {/* Navbar — fixed */}
+          <div className="flex items-center justify-between px-[10px] pt-[10px] pb-2 shrink-0">
             <button
               onClick={() => setView("home")}
               className="text-primary/60 hover:text-primary transition-colors"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5" />
                 <path d="M12 19l-7-7 7-7" />
               </svg>
@@ -178,12 +171,14 @@ ${fortune.combined.body}
               onClick={() => setView("settings")}
               className="text-primary/60 hover:text-primary transition-colors"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="3" />
                 <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
               </svg>
             </button>
           </div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto px-[7px] pb-[3px]">
 
           {/* Header */}
           <div className="text-center mb-3">
@@ -219,14 +214,49 @@ ${fortune.combined.body}
           </div>
 
           {isGenerating ? (
-            <div className="py-8">
-              <div className="flex flex-col items-center gap-5">
-                <div className="relative w-20 h-20">
-                  <div className="absolute inset-0 rounded-full border border-primary/20 animate-spin" style={{ animationDuration: "8s" }} />
-                  <div className="absolute inset-3 rounded-full border border-primary/30 animate-spin" style={{ animationDuration: "5s", animationDirection: "reverse" }} />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <img src="/moon-cat.png" alt="" className="w-12 animate-float" />
-                  </div>
+            <div className="py-5">
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative w-[140px] h-[140px] flex items-center justify-center">
+                  {/* StarCircle — 홈 화면과 동일 */}
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none animate-spin" style={{ animationDuration: "30s" }} viewBox="0 0 200 200">
+                    <g fill="#C8A96B" opacity="0.3">
+                      {Array.from({ length: 36 }, (_, i) => {
+                        const angle = (i / 36) * Math.PI * 2 - Math.PI / 2;
+                        const r = 88;
+                        const cx = 100 + Math.cos(angle) * r;
+                        const cy = 100 + Math.sin(angle) * r;
+                        const size = i % 4 === 0 ? 1.6 : i % 2 === 0 ? 1 : 0.5;
+                        return <circle key={i} cx={cx} cy={cy} r={size} />;
+                      })}
+                    </g>
+                    <g fill="#C8A96B" opacity="0.45">
+                      <polygon points="100,9 101,12 104,13 101,14 100,17 99,14 96,13 99,12" />
+                      <polygon points="191,100 192,103 195,104 192,105 191,108 190,105 187,104 190,103" />
+                      <polygon points="100,191 101,194 104,195 101,196 100,199 99,196 96,195 99,194" />
+                      <polygon points="9,100 10,103 13,104 10,105 9,108 8,105 5,104 8,103" />
+                    </g>
+                  </svg>
+                  {/* 반짝이는 별들 */}
+                  {[
+                    { x: 8, y: 15, delay: "0s", size: 5 },
+                    { x: 85, y: 8, delay: "0.8s", size: 4 },
+                    { x: 92, y: 75, delay: "1.5s", size: 5 },
+                    { x: 5, y: 80, delay: "0.4s", size: 4 },
+                    { x: 50, y: 2, delay: "1.2s", size: 3 },
+                    { x: 95, y: 42, delay: "2s", size: 3 },
+                    { x: 3, y: 48, delay: "1.8s", size: 3 },
+                    { x: 45, y: 95, delay: "0.6s", size: 4 },
+                  ].map((star, i) => (
+                    <svg
+                      key={i}
+                      className="absolute animate-twinkle pointer-events-none"
+                      style={{ left: `${star.x}%`, top: `${star.y}%`, animationDelay: star.delay, animationDuration: "2.5s" }}
+                      width={star.size * 2} height={star.size * 2} viewBox="0 0 16 16"
+                    >
+                      <polygon points="8,1 9,7 15,8 9,9 8,15 7,9 1,8 7,7" fill="#C8A96B" fillOpacity="0.7" />
+                    </svg>
+                  ))}
+                  <img src="/moon-cat.png" alt="" className="relative z-[1] w-[75px] animate-float" />
                 </div>
                 <div className="w-full space-y-2.5 max-w-[240px]">
                   {loadingSteps.map((step, i) => (
@@ -259,89 +289,15 @@ ${fortune.combined.body}
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] text-subtext/60 italic text-center animate-pulse">
+                <p className="text-[12px] text-foreground/40 text-center animate-pulse mt-8 tracking-[0.5px]">
                   {funMessage}
                 </p>
               </div>
             </div>
           ) : fortune ? (
             <>
-              {/* 01 — TODAY'S SCORE */}
-              <div className="mb-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-[10px] text-primary/50" style={{ fontFamily: "'Cinzel', serif" }}>01</span>
-                  <span className="text-[10px] text-primary/70 tracking-[3px] uppercase" style={{ fontFamily: "'Cinzel', serif" }}>today's score</span>
-                  <span className="flex-1 h-[0.5px] bg-primary/20" />
-                </div>
-                <div className="flex items-start justify-between px-1">
-                  <div className="flex items-end gap-1">
-                    <span className="text-[44px] gradient-text font-medium leading-none" style={{ fontFamily: "'Cinzel', serif" }}>
-                      {fortune.combined.luckScore}
-                    </span>
-                    <span className="text-[16px] text-primary/40 mb-1" style={{ fontFamily: "'Cinzel', serif" }}>
-                      / 100
-                    </span>
-                  </div>
-                  <div className="text-right mt-1">
-                    <p className="text-[15px] gradient-text font-medium" style={{ fontFamily: "'Noto Serif KR', serif" }}>
-                      묘점
-                    </p>
-                    <p className="text-[9px] text-primary/60 tracking-[2px] uppercase mt-0.5" style={{ fontFamily: "'Cinzel', serif" }}>
-                      myo score
-                    </p>
-                    <p className="text-[11px] text-subtext/70 mt-1.5 italic leading-[1.5]">
-                      {fortune.combined.luckScore >= 80 ? "묘하게 잘 풀리는 날" :
-                       fortune.combined.luckScore >= 60 ? "평범한 듯, 예상 밖의 흐름 있는 날" :
-                       fortune.combined.luckScore >= 40 ? "조용히 흘러가는 하루" :
-                       "묘하게 조심해야 할 날"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 02 — YOU · TODAY */}
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-[10px] text-primary/50" style={{ fontFamily: "'Cinzel', serif" }}>02</span>
-                  <span className="text-[10px] text-primary/70 tracking-[3px] uppercase" style={{ fontFamily: "'Cinzel', serif" }}>you · today</span>
-                  <span className="flex-1 h-[0.5px] bg-primary/20" />
-                </div>
-                <div className="grid grid-cols-2 gap-3 px-1">
-                  <div>
-                    <p className="text-[10px] text-primary/70 tracking-[2px] uppercase mb-2" style={{ fontFamily: "'Cinzel', serif" }}>my day</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[28px] gradient-text leading-none" style={{ fontFamily: "'Noto Serif KR', serif" }}>
-                        {profile.dayMasterHanja}
-                      </span>
-                      <span className="text-[13px] text-subtext" style={{ fontFamily: "'Cinzel', serif" }}>
-                        {getDayMasterEnglish(profile.dayMaster.charAt(0))}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-subtext/60 mt-2 leading-[1.6]">
-                      {getDayMasterPersonality(profile.dayMaster.charAt(0))}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-primary/70 tracking-[2px] uppercase mb-2" style={{ fontFamily: "'Cinzel', serif" }}>my star</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] text-subtext" style={{ fontFamily: "'Cinzel', serif" }}>
-                        {profile.zodiacSign}
-                      </span>
-                      <span className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center text-[18px] text-primary-light">
-                        {zodiacInfo.symbol}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-subtext/60 mt-2 leading-[1.6]">
-                      {zodiacInfo.ko} · {profile.birthDate.split("-").slice(1).map(Number).join("월 ")}일생
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <Divider />
-
               {/* Tabs */}
-              <div className="flex justify-center gap-5 mb-1">
+              <div className="flex justify-center gap-5 mb-4">
                 {tabs.map((tab) => (
                   <button
                     key={tab.key}
@@ -356,6 +312,87 @@ ${fortune.combined.body}
                   </button>
                 ))}
               </div>
+
+              {activeTab === "saju" ? (
+                (() => {
+                  const TEN_GOD_SHORT: Record<string, string> = {
+                    비견: "같은 기운의 만남",
+                    겁재: "경쟁과 도전",
+                    식신: "창의와 여유",
+                    상관: "표현과 감성",
+                    편재: "뜻밖의 기회",
+                    정재: "안정된 보상",
+                    편관: "긴장과 변화",
+                    정관: "질서와 책임",
+                    편인: "직감과 영감",
+                    정인: "배움과 지혜",
+                  };
+                  const rel = fortune.saju.relation;
+                  const relDesc = TEN_GOD_SHORT[rel] ?? "";
+
+                  return (
+                    <div className="flex flex-col items-center mb-4 mt-2">
+                      <p className="text-[10px] text-primary/60 tracking-[3px] uppercase mb-3" style={{ fontFamily: "'Cinzel', serif" }}>
+                        today's score
+                      </p>
+                      <span className="text-[36px] gradient-text font-medium leading-none" style={{ fontFamily: "'Cinzel', serif" }}>
+                        {fortune.luckScore}
+                      </span>
+
+                      {/* 나의 기운 × 오늘의 기운 */}
+                      <div className="flex items-center justify-center gap-5 mt-4">
+                        <div className="text-center">
+                          <p className="text-[11px] text-foreground/50 mb-1.5">나의 기운</p>
+                          <p className="text-[18px] text-foreground font-medium">{profile.dayMaster}</p>
+                        </div>
+                        <span className="text-[14px] text-primary/40 mt-4">×</span>
+                        <div className="text-center">
+                          <p className="text-[11px] text-foreground/50 mb-1.5">오늘의 기운</p>
+                          <p className="text-[18px] text-foreground font-medium">{fortune.saju.todayStemFullName ?? ""}</p>
+                        </div>
+                      </div>
+
+                      <p className="text-[12px] text-subtext/70 mt-3">
+                        {rel} — {relDesc}
+                      </p>
+                    </div>
+                  );
+                })()
+              ) : (
+                <>
+                  {/* 별자리 */}
+                  <div className="flex flex-col items-center mb-5">
+                    <p className="text-[10px] text-primary/60 tracking-[3px] uppercase mb-3" style={{ fontFamily: "'Cinzel', serif" }}>
+                      my star
+                    </p>
+                    <div className="relative w-[100px] h-[100px] flex items-center justify-center">
+                      <svg className="absolute inset-0" width="100" height="100" viewBox="0 0 100 100" fill="none">
+                        <circle cx="50" cy="50" r="46" stroke="#C8A96B" strokeWidth="0.5" strokeOpacity="0.25" />
+                        <circle cx="50" cy="50" r="42" stroke="#C8A96B" strokeWidth="0.3" strokeOpacity="0.15" />
+                        {Array.from({ length: 24 }).map((_, i) => {
+                          const angle = (i / 24) * Math.PI * 2 - Math.PI / 2;
+                          const r = 46;
+                          const x = 50 + Math.cos(angle) * r;
+                          const y = 50 + Math.sin(angle) * r;
+                          const size = i % 6 === 0 ? 1.2 : 0.5;
+                          return <circle key={i} cx={x} cy={y} r={size} fill="#C8A96B" fillOpacity={i % 6 === 0 ? 0.5 : 0.2} />;
+                        })}
+                      </svg>
+                      <div className="relative">
+                        <ZodiacConstellation sign={profile.zodiacSign} size={64} />
+                      </div>
+                    </div>
+                    <p className="text-[16px] gradient-text font-medium mt-2" style={{ fontFamily: "'Cinzel', serif" }}>
+                      {profile.zodiacSign}
+                    </p>
+                    <p className="text-[12px] text-subtext/80 mt-1">
+                      {zodiacInfo.ko} · {profile.birthDate.split("-").slice(1).map(Number).join("월 ")}일생
+                    </p>
+                  </div>
+                </>
+              )}
+
+              <Divider />
 
               {/* Headline */}
               {content && (
@@ -378,71 +415,61 @@ ${fortune.combined.body}
                 </div>
               )}
 
-              {/* Warning / Caution */}
-              {fortune && (activeTab === "combined" ? fortune.combined.caution || fortune.combined.warning : (content as any)?.advice) && (
-                <div className={`rounded-lg px-4 py-3.5 mb-5 ${
-                  activeTab === "combined"
-                    ? "bg-red-500/5 border border-red-500/20"
-                    : "glass"
-                }`}>
+              {/* Caution */}
+              {content?.caution && (
+                <div className="rounded-lg px-4 py-3.5 mb-5 bg-red-500/5 border border-red-500/20">
                   <div className="flex items-center gap-1.5 mb-2">
-                    {activeTab === "combined" && (
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-red-400/80 shrink-0" style={{ marginTop: "-1px" }}>
-                        <path d="M12 2L1 21h22L12 2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                        <line x1="12" y1="10" x2="12" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        <circle cx="12" cy="18" r="1" fill="currentColor" />
-                      </svg>
-                    )}
-                    <span className={`text-[11px] tracking-[2px] uppercase font-medium leading-none ${
-                      activeTab === "combined" ? "text-red-400/80" : "text-primary"
-                    }`} style={{ fontFamily: "'Cinzel', serif" }}>
-                      {activeTab === "combined" ? "주의할 묘" : "오늘의 조언"}
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-red-400/80 shrink-0" style={{ marginTop: "-1px" }}>
+                      <path d="M12 2L1 21h22L12 2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                      <line x1="12" y1="10" x2="12" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <circle cx="12" cy="18" r="1" fill="currentColor" />
+                    </svg>
+                    <span className="text-[12px] tracking-[2px] uppercase font-medium leading-none text-red-400" style={{ fontFamily: "'Cinzel', serif" }}>
+                      주의할 묘
                     </span>
                   </div>
-                  <p className="text-[13px] text-foreground/90 leading-[1.8]">
-                    {activeTab === "combined"
-                      ? (fortune.combined.caution || fortune.combined.warning)
-                      : (content as any)?.advice}
+                  <p className="text-[13px] text-foreground leading-[1.8]">
+                    {content.caution}
                   </p>
                 </div>
               )}
 
-              {/* Lucky items (combined tab only) */}
-              {activeTab === "combined" && fortune && (
-                <div className="grid grid-cols-3 gap-2 mb-5">
-                  <div className="bg-card/40 border border-primary/30 rounded-md p-3 text-center">
-                    <div className="h-8 flex items-center justify-center mb-1">
-                      <div
-                        className="w-6 h-6 rounded-full border border-primary/40"
-                        style={{ background: fortune.combined.luckyColorHex || "#4A6FB5", boxShadow: `0 0 0 2px rgba(212,175,55,0.15)` }}
-                      />
-                    </div>
-                    <p className="text-[10px] text-primary tracking-[1.5px]" style={{ fontFamily: "'Cinzel', serif" }}>
-                      color
-                    </p>
-                    <p className="text-[11px] text-foreground mt-1">{fortune.combined.luckyColor}</p>
+              {/* Lucky items — saju only */}
+              {activeTab === "saju" && (
+              <div className="grid grid-cols-3 gap-2 mb-5">
+                <div className="bg-card/40 border border-primary/30 rounded-md p-3 text-center">
+                  <div className="h-8 flex items-center justify-center mb-1">
+                    <div
+                      className="w-6 h-6 rounded-full border border-primary/40"
+                      style={{ background: fortune.saju.luckyColorHex || "#4A6FB5", boxShadow: `0 0 0 2px rgba(212,175,55,0.15)` }}
+                    />
                   </div>
-                  <div className="bg-card/40 border border-primary/30 rounded-md p-3 text-center">
-                    <div className="h-8 flex items-center justify-center mb-1">
-                      <span className="text-[28px] text-primary/80" style={{ fontFamily: "'Cinzel', serif" }}>
-                        {fortune.combined.luckyNumber}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-primary tracking-[1.5px]" style={{ fontFamily: "'Cinzel', serif" }}>
-                      number
-                    </p>
-                    <p className="text-[11px] text-foreground mt-1">럭키 넘버</p>
-                  </div>
-                  <div className="bg-card/40 border border-primary/30 rounded-md p-3 text-center">
-                    <div className="h-8 flex items-center justify-center mb-1">
-                      <span className="text-xl">🍴</span>
-                    </div>
-                    <p className="text-[10px] text-primary tracking-[1.5px]" style={{ fontFamily: "'Cinzel', serif" }}>
-                      food
-                    </p>
-                    <p className="text-[11px] text-foreground mt-1">{fortune.combined.luckyFood}</p>
-                  </div>
+                  <p className="text-[10px] text-primary tracking-[1.5px]" style={{ fontFamily: "'Cinzel', serif" }}>
+                    color
+                  </p>
+                  <p className="text-[11px] text-foreground mt-1">{fortune.saju.luckyColor}</p>
                 </div>
+                <div className="bg-card/40 border border-primary/30 rounded-md p-3 text-center">
+                  <div className="h-8 flex items-center justify-center mb-1">
+                    <span className="text-[28px] text-primary/80" style={{ fontFamily: "'Cinzel', serif" }}>
+                      {fortune.saju.luckyNumber}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-primary tracking-[1.5px]" style={{ fontFamily: "'Cinzel', serif" }}>
+                    number
+                  </p>
+                  <p className="text-[11px] text-foreground mt-1">럭키 넘버</p>
+                </div>
+                <div className="bg-card/40 border border-primary/30 rounded-md p-3 text-center">
+                  <div className="h-8 flex items-center justify-center mb-1">
+                    <span className="text-xl">🍴</span>
+                  </div>
+                  <p className="text-[10px] text-primary tracking-[1.5px]" style={{ fontFamily: "'Cinzel', serif" }}>
+                    food
+                  </p>
+                  <p className="text-[11px] text-foreground mt-1">{fortune.saju.luckyFood}</p>
+                </div>
+              </div>
               )}
 
               {/* Action buttons */}
@@ -476,6 +503,7 @@ ${fortune.combined.body}
             </div>
           )}
 
+          </div>
           </div>
         </div>
       </div>

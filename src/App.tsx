@@ -11,9 +11,17 @@ export default function App() {
   const { currentView, isLoading, initialized, initialize, preferences } =
     useAppStore();
 
+  const checkDateChange = useAppStore((s) => s.checkDateChange);
+
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    const onFocus = () => checkDateChange();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [checkDateChange]);
 
   useEffect(() => {
     const root = document.documentElement;

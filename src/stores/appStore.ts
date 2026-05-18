@@ -23,6 +23,7 @@ type AppState = {
   debugError: string;
   detached: boolean;
   currentView: "home" | "card" | "tarot" | "onboarding" | "settings";
+  lastCheckedDate: string;
 
   initialize: () => Promise<void>;
   setProfile: (profile: UserProfile) => Promise<void>;
@@ -32,6 +33,7 @@ type AppState = {
   resetAll: () => Promise<void>;
   toggleDetached: () => Promise<void>;
   setView: (view: "home" | "card" | "tarot" | "onboarding" | "settings") => void;
+  checkDateChange: () => Promise<void>;
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -44,6 +46,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   debugError: "",
   detached: false,
   currentView: "card",
+  lastCheckedDate: new Date().toISOString().split("T")[0],
 
   initialize: async () => {
     try {
@@ -65,6 +68,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         isLoading: false,
         initialized: true,
         currentView: profile ? "home" : "onboarding",
+        lastCheckedDate: today,
       });
     } catch (e) {
       set({ isLoading: false, initialized: true, currentView: "onboarding", debugError: `init: ${e}` });
@@ -129,4 +133,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   setView: (view) => set({ currentView: view }),
+
+  checkDateChange: async () => {
+    const today = new Date().toISOString().split("T")[0];
+    const { lastCheckedDate, profile } = get();
+    if (today === lastCheckedDate) return;
+
+    let fortune: DailyFortune | null = null;
+    if (profile) {
+      fortune = await loadDailyFortune(today);
+    }
+    set({ fortune, lastCheckedDate: today });
+  },
 }));
